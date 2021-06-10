@@ -2,7 +2,8 @@ const db = require("../database/dbMysql");
 
 const topUp = (id, amount) => {
   return new Promise((resolve, reject) => {
-    const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
+    const getPrevBalance =
+      "SELECT balance_nominal FROM balances WHERE user_id = ?";
     db.query(getPrevBalance, id, (error, result) => {
       if (error) {
         console.log(error);
@@ -10,11 +11,13 @@ const topUp = (id, amount) => {
       } else {
         console.log(result.length);
         const isExist = result.length > 0;
-        const newBalance = isExist ? result[0].balance_nominal + Number(amount) : Number(amount);
+        const newBalance = isExist
+          ? result[0].balance_nominal + Number(amount)
+          : Number(amount);
 
         if (isExist) {
           const data = {
-            balance_nominal: newBalance
+            balance_nominal: newBalance,
           };
           const queryString = "UPDATE balances SET ? WHERE user_id = ?";
           db.query(queryString, [data, id], (error, result) => {
@@ -26,7 +29,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 transaction_nominal: amount,
-                type: "top up"
+                type: "top up",
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -41,7 +44,7 @@ const topUp = (id, amount) => {
         } else {
           const data = {
             user_id: id,
-            balance_nominal: newBalance
+            balance_nominal: newBalance,
           };
           const queryString = "INSERT INTO balances SET ?";
           db.query(queryString, [data], (error, result) => {
@@ -54,7 +57,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 transaction_nominal: amount,
-                type: "top up"
+                type: "top up",
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -76,7 +79,8 @@ const transfer = (sender, receiver, amount, note) => {
   let senderBalance, receiverBalance;
 
   //   Check sender balance
-  const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
+  const getPrevBalance =
+    "SELECT balance_nominal FROM balances WHERE user_id = ?";
   return new Promise((resolve, reject) => {
     db.query(getPrevBalance, sender, (error, result) => {
       if (error) {
@@ -90,7 +94,7 @@ const transfer = (sender, receiver, amount, note) => {
             receiver_id: receiver,
             transaction_nominal: amount,
             type: "credit",
-            note: note
+            note: note,
           };
 
           const dataReceiver = {
@@ -98,7 +102,7 @@ const transfer = (sender, receiver, amount, note) => {
             receiver_id: receiver,
             transaction_nominal: amount,
             type: "debit",
-            note: note
+            note: note,
           };
 
           const addTransaction = "INSERT INTO transactions SET ?";
@@ -112,9 +116,10 @@ const transfer = (sender, receiver, amount, note) => {
                 } else {
                   // Reducing sender balance
                   const data = {
-                    balance_nominal: senderBalance - Number(amount)
+                    balance_nominal: senderBalance - Number(amount),
                   };
-                  const updateBalance = "UPDATE balances SET ? WHERE user_id = ?";
+                  const updateBalance =
+                    "UPDATE balances SET ? WHERE user_id = ?";
                   db.query(updateBalance, [data, sender], (error, result) => {
                     if (error) {
                       return reject(error);
@@ -127,20 +132,24 @@ const transfer = (sender, receiver, amount, note) => {
                         } else if (result.length > 0) {
                           receiverBalance = Number(result[0].balance_nominal);
                           const data = {
-                            balance_nominal: receiverBalance + Number(amount)
+                            balance_nominal: receiverBalance + Number(amount),
                           };
 
-                          db.query(updateBalance, [data, receiver], (error, result) => {
-                            if (error) {
-                              return reject(error);
-                            } else {
-                              resolve(result);
+                          db.query(
+                            updateBalance,
+                            [data, receiver],
+                            (error, result) => {
+                              if (error) {
+                                return reject(error);
+                              } else {
+                                resolve(result);
+                              }
                             }
-                          });
+                          );
                         } else {
                           const data = {
                             user_id: receiver,
-                            balance_nominal: amount
+                            balance_nominal: amount,
                           };
                           const queryString = "INSERT INTO balances SET ?";
                           db.query(queryString, [data], (error, result) => {
@@ -169,5 +178,5 @@ const transfer = (sender, receiver, amount, note) => {
 };
 module.exports = {
   topUp,
-  transfer
+  transfer,
 };
