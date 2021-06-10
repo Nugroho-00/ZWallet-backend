@@ -3,7 +3,7 @@ const { SECRET_KEY } = process.env;
 const responseStandard = require("../helpers/response");
 const authModels = require("../models/authModels");
 
-const authentikasi = async (req, res, next) => {
+const authentication = async (req, res, next) => {
   try {
     const { authorization } = req.headers;
     const token = authorization?.split(" ")[1];
@@ -25,4 +25,4 @@ const authentikasi = async (req, res, next) => {
   }
 };
 
-module.exports = { authentikasi };
+module.exports = { authentication };
