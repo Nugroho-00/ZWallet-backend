@@ -1,5 +1,5 @@
 const usersModels = require("../models/usersModels");
-const responseStandard = require("../helpers/response");
+const { responseStandard } = require("../helpers/response");
 
 const getAccountInfo = async (req, res) => {
   try {

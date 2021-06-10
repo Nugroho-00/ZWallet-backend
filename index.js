@@ -25,6 +25,9 @@ app.use("/auth", authRoute);
 app.use("/profile", usersRoute);
 app.use("/transaction", transactionRoute);
 
+// temporary route
+// app.use("/notification");
+
 app.listen(process.env.PORT, () => {
   console.log("Server running at port", process.env.PORT);
 });

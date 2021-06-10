@@ -146,5 +146,5 @@ module.exports = {
   resetPasswordModel,
   sendOTPModel,
   verifyOTPModel,
-  logoutModel,
+  logoutModel
 };

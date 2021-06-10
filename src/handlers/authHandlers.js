@@ -2,9 +2,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const generateOTP = require("../helpers/generatorOTP");
 const { transporterMail } = require("../helpers/transporterEmail");
-const responseStandard = require("../helpers/response");
+const { responseStandard } = require("../helpers/response");
 const authModels = require("../models/authModels");
-const { propfind } = require("../routes/authRoutes");
 
 const registerAccount = async (req, res) => {
   try {
@@ -69,22 +68,22 @@ const loginAccount = async (req, res) => {
   }
 };
 
-const validationPin = async (req, res) => {
-  try {
-    const { id } = req.user;
-    const { pin } = req.body;
-    const result = await authModels.checkPinModel([pin, id]);
-    if (result === pin) {
-      return responseStandard(res, "Success!!");
-    } else if (result != pin) {
-      return responseStandard(res, "wrong pin !!");
-    } else if (result.length < 1) {
-      return responseStandard(res, "pin not registered!! create pin Now!");
-    }
-  } catch (error) {
-    return responseStandard(res, error.message, {}, 400, false);
-  }
-};
+// const validationPin = async (req, res) => {
+//   try {
+//     const { id } = req.user;
+//     const { pin } = req.body;
+//     const result = await authModels.checkPinModel([pin, id]);
+//     if (result === pin) {
+//       return responseStandard(res, "Success!!");
+//     } else if (result != pin) {
+//       return responseStandard(res, "wrong pin !!");
+//     } else if (result.length < 1) {
+//       return responseStandard(res, "pin not registered!! create pin Now!");
+//     }
+//   } catch (error) {
+//     return responseStandard(res, error.message, {}, 400, false);
+//   }
+// };
 
 const createPinUser = async (req, res) => {
   try {
@@ -198,5 +197,4 @@ module.exports = {
   resetPassword,
   postOTP,
   verifyOTP,
-  validationPin,
 };
