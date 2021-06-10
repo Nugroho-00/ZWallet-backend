@@ -12,14 +12,16 @@ app.use(logger("dev"));
 app.use(cors());
 app.use(express.static("public"));
 
-// import middlewares
-// const { authentikasi } = require("./src/middlewares/authentication");
+// // import middlewares
+// const { authentication } = require("./src/middlewares/authentication");
 
 // import route
 const authRoute = require("./src/routes/authRoutes");
+const transactionRoute = require("./src/routes/transactionRoutes");
 
 // route acces
 app.use("/auth", authRoute);
+app.use("/transaction", transactionRoute);
 
 app.listen(process.env.PORT, () => {
   console.log("Server running at port", process.env.PORT);
