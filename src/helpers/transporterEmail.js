@@ -8,10 +8,10 @@ const transporterMail = nodemailer.createTransport({
   service: "Gmail",
   auth: {
     user: ADMIN_USER,
-    pass: ADMIN_PASSWORD,
-  },
+    pass: ADMIN_PASSWORD
+  }
 });
 
 module.exports = {
-  transporterMail,
+  transporterMail
 };

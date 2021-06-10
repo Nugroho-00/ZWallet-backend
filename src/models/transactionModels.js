@@ -17,7 +17,7 @@ const topUp = (id, amount) => {
 
         if (isExist) {
           const data = {
-            balance_nominal: newBalance,
+            balance_nominal: newBalance
           };
           const queryString = "UPDATE balances SET ? WHERE user_id = ?";
           db.query(queryString, [data, id], (error, result) => {
@@ -29,7 +29,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 transaction_nominal: amount,
-                type: "top up",
+                type: "top up"
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -44,7 +44,7 @@ const topUp = (id, amount) => {
         } else {
           const data = {
             user_id: id,
-            balance_nominal: newBalance,
+            balance_nominal: newBalance
           };
           const queryString = "INSERT INTO balances SET ?";
           db.query(queryString, [data], (error, result) => {
@@ -57,7 +57,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 transaction_nominal: amount,
-                type: "top up",
+                type: "top up"
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -94,7 +94,7 @@ const transfer = (sender, receiver, amount, note) => {
             receiver_id: receiver,
             transaction_nominal: amount,
             type: "credit",
-            note: note,
+            note: note
           };
 
           const dataReceiver = {
@@ -102,7 +102,7 @@ const transfer = (sender, receiver, amount, note) => {
             receiver_id: receiver,
             transaction_nominal: amount,
             type: "debit",
-            note: note,
+            note: note
           };
 
           const addTransaction = "INSERT INTO transactions SET ?";
@@ -116,7 +116,7 @@ const transfer = (sender, receiver, amount, note) => {
                 } else {
                   // Reducing sender balance
                   const data = {
-                    balance_nominal: senderBalance - Number(amount),
+                    balance_nominal: senderBalance - Number(amount)
                   };
                   const updateBalance =
                     "UPDATE balances SET ? WHERE user_id = ?";
@@ -132,7 +132,7 @@ const transfer = (sender, receiver, amount, note) => {
                         } else if (result.length > 0) {
                           receiverBalance = Number(result[0].balance_nominal);
                           const data = {
-                            balance_nominal: receiverBalance + Number(amount),
+                            balance_nominal: receiverBalance + Number(amount)
                           };
 
                           db.query(
@@ -149,7 +149,7 @@ const transfer = (sender, receiver, amount, note) => {
                         } else {
                           const data = {
                             user_id: receiver,
-                            balance_nominal: amount,
+                            balance_nominal: amount
                           };
                           const queryString = "INSERT INTO balances SET ?";
                           db.query(queryString, [data], (error, result) => {
@@ -176,7 +176,45 @@ const transfer = (sender, receiver, amount, note) => {
     });
   });
 };
+
+const history = (id, pages) => {
+  const qs = "SELECT * FROM transactions WHERE sender_id = ? OR receiver_id = ?";
+  // SELECT * FROM transactions WHERE (sender_id =2 OR receiver_id = 2) AND transaction_nominal>10000 AND type='top up' AND DATE(created_at) BETWEEN unix_timestamp('2021-06-09') AND unix_timestamp('2021-06-11') ORDER BY id DESC
+
+  const paginate = " LIMIT ? OFFSET ?";
+
+  const fullQuery = qs + paginate;
+
+  const limit = 5;
+  const page = Number(pages) || 1;
+  const offset = (page - 1) * limit;
+
+  return new Promise((resolve, reject) => {
+    db.query(fullQuery, [id, id, limit, offset], (error, result) => {
+      if (error) {
+        return reject(error);
+      } else {
+        const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
+        db.query(qsCount, [id, id], (error, data) => {
+          if (error) {
+            return reject(error);
+          } else {
+            const { count } = data[0];
+            const finalResult = {
+              result,
+              count,
+              page,
+              limit
+            };
+            resolve(finalResult);
+          }
+        });
+      }
+    });
+  });
+};
 module.exports = {
   topUp,
   transfer,
+  history
 };

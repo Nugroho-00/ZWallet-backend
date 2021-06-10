@@ -6,7 +6,7 @@ const {
   postOTP,
   verifyOTP,
   resetPassword,
-  logoutToken,
+  logoutToken
 } = require("../handlers/authHandlers");
 const { authentication } = require("../middlewares/authentication");
 
