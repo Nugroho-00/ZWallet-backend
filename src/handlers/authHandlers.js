@@ -4,6 +4,7 @@ const generateOTP = require("../helpers/generatorOTP");
 const { transporterMail } = require("../helpers/transporterEmail");
 const responseStandard = require("../helpers/response");
 const authModels = require("../models/authModels");
+const { propfind } = require("../routes/authRoutes");
 
 const registerAccount = async (req, res) => {
   try {
@@ -68,6 +69,23 @@ const loginAccount = async (req, res) => {
   }
 };
 
+const validationPin = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { pin } = req.body;
+    const result = await authModels.checkPinModel([pin, id]);
+    if (result === pin) {
+      return responseStandard(res, "Success!!");
+    } else if (result != pin) {
+      return responseStandard(res, "wrong pin !!");
+    } else if (result.length < 1) {
+      return responseStandard(res, "pin not registered!! create pin Now!");
+    }
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 400, false);
+  }
+};
+
 const createPinUser = async (req, res) => {
   try {
     const { id } = req.user;
@@ -90,19 +108,19 @@ const postOTP = async (req, res) => {
     const result = await authModels.checkEmailModel(email);
     if (result) {
       const otp = generateOTP.generateOTP();
-      await authModels.sendOTPModel([otp, result.id]);
-      responseStandard(res, null, { ...result.id }, 200, true);
+      await authModels.sendOTPModel([otp, result[0].id]);
+      responseStandard(res, null, { ...result[0].id }, 200, true);
       console.log(otp);
       var mailOptions = {
         to: "chasterchaz01@gmail.com",
         subject: "Reset Password OTP",
         html:
-          "<h1>Haloo!! </h1>" +
-          "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
+          "<h3>Haloo!! </h3>" +
+          "<h3>Silahkan masukan kode OTP untuk melakukan reset password</h3>" +
           "<h1 style='font-weight:bold;'>" +
           otp +
           "</h1>" +
-          "<h3>expired in 5 minutes</h3>", // html body
+          "<h5>expired in 5 minutes</h5>",
       };
       transporterMail.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -112,7 +130,7 @@ const postOTP = async (req, res) => {
         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
       });
       setTimeout(async () => {
-        await authModels.sendOTPModel([null, result.id]);
+        await authModels.sendOTPModel([otp, result[0].id]);
         console.log("timeout OTP");
       }, 300000);
     }
@@ -180,4 +198,5 @@ module.exports = {
   resetPassword,
   postOTP,
   verifyOTP,
+  validationPin,
 };
