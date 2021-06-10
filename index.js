@@ -26,7 +26,7 @@ app.use("/profile", usersRoute);
 app.use("/transaction", transactionRoute);
 
 // temporary route
-app.use("/notification");
+// app.use("/notification");
 
 app.listen(process.env.PORT, () => {
   console.log("Server running at port", process.env.PORT);
@@ -36,6 +36,6 @@ app.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.json({
     succes: true,
-    message: "Backend is Running Now!!!"
+    message: "Backend is Running Now!!!",
   });
 });

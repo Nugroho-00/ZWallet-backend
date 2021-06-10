@@ -10,5 +10,5 @@ const generateOTP = () => {
 };
 
 module.exports = {
-  generateOTP
+  generateOTP,
 };

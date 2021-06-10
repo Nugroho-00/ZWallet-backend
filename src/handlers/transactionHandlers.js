@@ -1,6 +1,7 @@
-
-/* eslint-disable camelcase */
-const { responseStandard, writeResponsePaginated } = require("../helpers/response");
+const {
+  responseStandard,
+  writeResponsePaginated,
+} = require("../helpers/response");
 const transactionModels = require("../models/transactionModels");
 
 const topUp = async (req, res) => {
@@ -101,13 +102,7 @@ const history = async (req, res) => {
     const totalPage = Math.ceil(count / limit) || 1;
 
     const url =
-                protocol +
-                "://" +
-                hostname +
-                ":" +
-                process.env.PORT +
-                baseUrl +
-                path;
+      protocol + "://" + hostname + ":" + process.env.PORT + baseUrl + path;
 
     const prev = page === 1 ? null : url + `?pages=${page - 1}`;
     const next = page === totalPage ? null : url + `?pages=${page + 1}`;
@@ -116,7 +111,7 @@ const history = async (req, res) => {
       page,
       totalPage,
       next,
-      prev
+      prev,
     };
     return writeResponsePaginated(res, 200, info, result);
   } catch (error) {

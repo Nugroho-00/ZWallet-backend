@@ -5,29 +5,30 @@ const responseStandard = (
   status = 200,
   success = true
 ) => {
-  return response.status(status).json({
+  response.status(status).json({
     success,
     message: message || "Success",
-    ...aditionalData
+    ...aditionalData,
   });
 };
+
 const writeResponsePaginated = (res, status, info, result) => {
   let response = {};
   if (result) {
     response = {
       ...response,
-      result
+      result,
     };
   }
   if (info) {
     response = {
       info,
-      ...response
+      ...response,
     };
   }
   res.status(status).json(response);
 };
 module.exports = {
   responseStandard,
-  writeResponsePaginated
+  writeResponsePaginated,
 };

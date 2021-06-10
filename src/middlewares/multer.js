@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const responseStandard = require("../helpers/response");
+const { responseStandard } = require("../helpers/response");
 
 const userStorage = multer.diskStorage({
   destination: (req, file, cb) => {
