@@ -22,7 +22,20 @@ const topUp = (id, amount) => {
             if (error) {
               return reject(error);
             } else {
-              return resolve(result);
+              const historyData = {
+                sender_id: id,
+                receiver_id: id,
+                transaction_nominal: amount,
+                type: "top up"
+              };
+              const addHistory = "INSERT INTO transactions SET ?";
+              db.query(addHistory, historyData, (error, result) => {
+                if (error) {
+                  return reject(error);
+                } else {
+                  return resolve(result);
+                }
+              });
             }
           });
         } else {
@@ -35,7 +48,20 @@ const topUp = (id, amount) => {
             if (error) {
               return reject(error);
             } else {
-              return resolve(result);
+              const historyData = {
+                sender_id: id,
+                receiver_id: id,
+                transaction_nominal: amount,
+                type: "top up"
+              };
+              const addHistory = "INSERT INTO transactions SET ?";
+              db.query(addHistory, historyData, (error, result) => {
+                if (error) {
+                  return reject(error);
+                } else {
+                  return resolve(result);
+                }
+              });
             }
           });
         }
