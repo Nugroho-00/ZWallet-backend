@@ -29,7 +29,7 @@ const checkEmailModel = (email) => {
 
 const getUsersEmail = (email) => {
   return new Promise((resolve, reject) => {
-    const queryString = 'SELECT * FROM users WHERE email=?';
+    const queryString = `SELECT * FROM users WHERE email = ? `;
     db.query(queryString, email, (err, result) => {
       if (err) {
         reject(err);
@@ -53,12 +53,55 @@ const getToken = (token) => {
   });
 };
 
-const createPin = (table, data, id) => {
+const createPin = (data) => {
   return new Promise((resolve, reject) => {
-    const queryString = 'UPDATE ?? SET ? WHERE ?';
-    db.query(queryString, [table, data, id], (err, result, _field) => {
+    const queryString = "UPDATE users SET pin = ?";
+    db.query(queryString, data, (err, result) => {
       if (err) {
         reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+const resetPasswordModel = (data) => {
+  return new Promise((resolve, reject) => {
+    const queryString = `UPDATE users SET password = ? WHERE id = ?`;
+    db.query(queryString, data, (error, result) => {
+      if (error) {
+        reject(error);
+      } else if (result.length === 0) {
+        reject(result);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+const verifyOTPModel = (data) => {
+  return new Promise((resolve, reject) => {
+    const queryString = `SELECT id FROM users WHERE otp = ? and id = ?`;
+    db.query(queryString, data, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+const sendOTPModel = (data) => {
+  return new Promise((resolve, reject) => {
+    const queryString = `UPDATE users SET otp = ? WHERE id = ?`;
+    db.query(queryString, data, (error, result) => {
+      if (error) {
+        reject(error);
+      } else if (result.length === 0) {
+        reject(result);
       } else {
         resolve(result);
       }
@@ -86,5 +129,8 @@ module.exports = {
   getUsersEmail,
   getToken,
   createPin,
-  logoutModel
+  resetPasswordModel,
+  sendOTPModel,
+  verifyOTPModel,
+  logoutModel,
 };

@@ -1,12 +1,14 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const generateOTP = require("../helpers/generatorOTP");
+const { transporterMail } = require("../helpers/transporterEmail");
 const responseStandard = require("../helpers/response");
 const authModels = require("../models/authModels");
 
 const registerAccount = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
+    const { username, email, phone, password } = req.body;
+    if (!username || !email || !phone || !password) {
       return responseStandard(res, "Fields can not be empty", {}, 400, false);
     }
     if (password.length < 8) {
@@ -27,6 +29,7 @@ const registerAccount = async (req, res) => {
     const users = {
       username: username,
       email: email,
+      phone: phone,
       password: hashedPassword,
     };
     await authModels.createAcount(users);
@@ -67,22 +70,91 @@ const loginAccount = async (req, res) => {
 
 const createPinUser = async (req, res) => {
   try {
-    const { pin, email } = req.body;
+    const { id } = req.user;
+    const { pin } = req.body;
     if (!pin) {
       return responseStandard(res, "Pin cannot be empty");
+    } else if (pin.length < 6) {
+      return responseStandard(res, "Pin must be 6 characters!");
     }
-    const { affectedRows } = await authModels.createPin(
-      "users",
-      { email },
-      { pin }
-    );
-    if (affectedRows) {
-      return responseStandard(res, "Create pin succesfuly", {}, 200, true);
-    } else {
-      return responseStandard(res, "Failed try again !", {}, 400, false);
+    await authModels.createPin(pin, id);
+    return responseStandard(res, "success create pin!", {}, 200, true);
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 400, false);
+  }
+};
+
+const postOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await authModels.checkEmailModel(email);
+    if (result) {
+      const otp = generateOTP.generateOTP();
+      await authModels.sendOTPModel([otp, result.id]);
+      responseStandard(res, null, { ...result.id }, 200, true);
+      console.log(otp);
+      var mailOptions = {
+        to: "chasterchaz01@gmail.com",
+        subject: "Reset Password OTP",
+        html:
+          "<h1>Haloo!! </h1>" +
+          "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
+          "<h1 style='font-weight:bold;'>" +
+          otp +
+          "</h1>" +
+          "<h3>expired in 5 minutes</h3>", // html body
+      };
+      transporterMail.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          return console.log(error);
+        }
+        console.log("Message sent: %s", info.messageId);
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      });
+      setTimeout(async () => {
+        await authModels.sendOTPModel([null, result.id]);
+        console.log("timeout OTP");
+      }, 300000);
     }
   } catch (error) {
-    return responseStandard(res, error.message, {}, 500, false);
+    responseStandard(res, error.message, {}, 403, false);
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { otp, id } = req.body;
+    const result = await authModels.verifyOTPModel([otp, id]);
+    console.log(result);
+    if (result) {
+      const options = {
+        expiresIn: process.env.EXPIRE,
+        issuer: process.env.ISSUER,
+      };
+      const payload = {
+        id: id,
+      };
+      const token = jwt.sign(payload, process.env.SECRET_KEY, options);
+      responseStandard(res, null, { token }, 200, true);
+    }
+  } catch (error) {
+    console.log(error);
+    responseStandard(res, error, {}, 400, false);
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(newPassword, salt);
+    const result = await authModels.resetPasswordModel([
+      hashPassword,
+      req.user.id,
+    ]);
+    responseStandard(res, "success to reset password!", { result }, 200, true);
+  } catch (error) {
+    responseStandard(res, error, {}, 400, false);
   }
 };
 
@@ -100,4 +172,12 @@ const logoutToken = async (req, res) => {
   }
 };
 
-module.exports = { registerAccount, loginAccount, logoutToken, createPinUser };
+module.exports = {
+  registerAccount,
+  loginAccount,
+  logoutToken,
+  createPinUser,
+  resetPassword,
+  postOTP,
+  verifyOTP,
+};
