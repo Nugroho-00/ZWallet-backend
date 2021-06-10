@@ -17,10 +17,12 @@ app.use(express.static("public"));
 
 // import route
 const authRoute = require("./src/routes/authRoutes");
+const usersRoute = require("./src/routes/usersRoutes");
 const transactionRoute = require("./src/routes/transactionRoutes");
 
 // route acces
 app.use("/auth", authRoute);
+app.use("/profile", usersRoute);
 app.use("/transaction", transactionRoute);
 
 // temporary route
