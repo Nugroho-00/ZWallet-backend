@@ -2,7 +2,8 @@ const db = require("../database/dbMysql");
 
 const topUp = (id, amount) => {
   return new Promise((resolve, reject) => {
-    const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
+    const getPrevBalance =
+      "SELECT balance_nominal FROM balances WHERE user_id = ?";
     db.query(getPrevBalance, id, (error, result) => {
       if (error) {
         console.log(error);
@@ -10,7 +11,9 @@ const topUp = (id, amount) => {
       } else {
         console.log(result.length);
         const isExist = result.length > 0;
-        const newBalance = isExist ? result[0].balance_nominal + Number(amount) : Number(amount);
+        const newBalance = isExist
+          ? result[0].balance_nominal + Number(amount)
+          : Number(amount);
 
         if (isExist) {
           const data = {
@@ -76,7 +79,8 @@ const transfer = (sender, receiver, amount, note) => {
   let senderBalance, receiverBalance;
 
   //   Check sender balance
-  const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
+  const getPrevBalance =
+    "SELECT balance_nominal FROM balances WHERE user_id = ?";
   return new Promise((resolve, reject) => {
     db.query(getPrevBalance, sender, (error, result) => {
       if (error) {
@@ -114,7 +118,8 @@ const transfer = (sender, receiver, amount, note) => {
                   const data = {
                     balance_nominal: senderBalance - Number(amount)
                   };
-                  const updateBalance = "UPDATE balances SET ? WHERE user_id = ?";
+                  const updateBalance =
+                    "UPDATE balances SET ? WHERE user_id = ?";
                   db.query(updateBalance, [data, sender], (error, result) => {
                     if (error) {
                       return reject(error);
@@ -130,13 +135,17 @@ const transfer = (sender, receiver, amount, note) => {
                             balance_nominal: receiverBalance + Number(amount)
                           };
 
-                          db.query(updateBalance, [data, receiver], (error, result) => {
-                            if (error) {
-                              return reject(error);
-                            } else {
-                              resolve(result);
+                          db.query(
+                            updateBalance,
+                            [data, receiver],
+                            (error, result) => {
+                              if (error) {
+                                return reject(error);
+                              } else {
+                                resolve(result);
+                              }
                             }
-                          });
+                          );
                         } else {
                           const data = {
                             user_id: receiver,

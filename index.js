@@ -31,6 +31,6 @@ app.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.json({
     succes: true,
-    message: "Backend is Running Now!!!"
+    message: "Backend is Running Now!!!",
   });
 });
