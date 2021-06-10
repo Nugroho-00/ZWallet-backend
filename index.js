@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.static("public"));
 
 // import middlewares
-const { authentikasi } = require("./src/middlewares/authentication");
+// const { authentikasi } = require("./src/middlewares/authentication");
 
 // import route
 const authRoute = require("./src/routes/authRoutes");
