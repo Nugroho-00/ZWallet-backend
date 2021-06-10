@@ -167,7 +167,45 @@ const transfer = (sender, receiver, amount, note) => {
     });
   });
 };
+
+const history = (id, pages) => {
+  const qs = "SELECT * FROM transactions WHERE sender_id = ? OR receiver_id = ?";
+  // SELECT * FROM transactions WHERE (sender_id =2 OR receiver_id = 2) AND transaction_nominal>10000 AND type='top up' AND DATE(created_at) BETWEEN unix_timestamp('2021-06-09') AND unix_timestamp('2021-06-11') ORDER BY id DESC
+
+  const paginate = " LIMIT ? OFFSET ?";
+
+  const fullQuery = qs + paginate;
+
+  const limit = 5;
+  const page = Number(pages) || 1;
+  const offset = (page - 1) * limit;
+
+  return new Promise((resolve, reject) => {
+    db.query(fullQuery, [id, id, limit, offset], (error, result) => {
+      if (error) {
+        return reject(error);
+      } else {
+        const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
+        db.query(qsCount, [id, id], (error, data) => {
+          if (error) {
+            return reject(error);
+          } else {
+            const { count } = data[0];
+            const finalResult = {
+              result,
+              count,
+              page,
+              limit
+            };
+            resolve(finalResult);
+          }
+        });
+      }
+    });
+  });
+};
 module.exports = {
   topUp,
-  transfer
+  transfer,
+  history
 };

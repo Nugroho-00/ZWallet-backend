@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-const responseStandard = require("../helpers/response");
+const { responseStandard, writeResponsePaginated } = require("../helpers/response");
 const transactionModels = require("../models/transactionModels");
 
 const topUp = async (req, res) => {
@@ -48,4 +48,39 @@ const transfer = async (req, res) => {
   }
 };
 
-module.exports = { topUp, transfer };
+const history = async (req, res) => {
+  const { baseUrl, path, hostname, protocol } = req;
+  try {
+    const { id } = req.user;
+    const { pages } = req.query;
+
+    const finalResult = await transactionModels.history(id, pages);
+    const { result, count, page, limit } = finalResult;
+    const totalPage = Math.ceil(count / limit) || 1;
+
+    const url =
+                protocol +
+                "://" +
+                hostname +
+                ":" +
+                process.env.PORT +
+                baseUrl +
+                path;
+
+    const prev = page === 1 ? null : url + `?pages=${page - 1}`;
+    const next = page === totalPage ? null : url + `?pages=${page + 1}`;
+    const info = {
+      count,
+      page,
+      totalPage,
+      next,
+      prev
+    };
+    return writeResponsePaginated(res, 200, info, result);
+  } catch (error) {
+    console.log(error);
+    return responseStandard(res, error.message, {}, 500, false);
+  }
+};
+
+module.exports = { topUp, transfer, history };
