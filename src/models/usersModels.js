@@ -3,7 +3,7 @@ const db = require("../database/dbMysql");
 const getAccountModel = (data) => {
   return new Promise((resolve, reject) => {
     const queryString =
-      "SELECT email,username,phone,avatar FROM users WHERE id = ?";
+      "SELECT u.email, u.username, u.phone, u.avatar, b.balance_nominal as balances FROM users u LEFT JOIN balances b ON u.id = b.user_id WHERE u.id = ?";
     db.query(queryString, data, (error, result) => {
       if (error) {
         reject(error);
@@ -70,5 +70,5 @@ module.exports = {
   getAccountModel,
   updateAccountModel,
   getUsersId,
-  changePinModel,
+  changePinModel
 };
