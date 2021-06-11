@@ -31,7 +31,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 nominal: amount,
-                type: "top up",
+                type: "topup",
                 transaction_id: transaction_id
               };
               const addHistory = "INSERT INTO transactions SET ?";
@@ -60,7 +60,7 @@ const topUp = (id, amount) => {
                 sender_id: id,
                 receiver_id: id,
                 nominal: amount,
-                type: "top up",
+                type: "topup",
                 transaction_id: transaction_id
 
               };
@@ -200,9 +200,58 @@ const transfer = (sender, phone, amount, note) => {
   });
 };
 
-const history = (id, search, start, end, sort, pages) => {
-  const qs = "SELECT s.username as 'current_user', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE t.receiver_id=? OR t.sender_id=? GROUP BY transaction_id ORDER BY created_at DESC";
-  // SELECT * FROM transactions WHERE (sender_id =2 OR receiver_id = 2) AND nominal>10000 AND type='top up' AND DATE(created_at) BETWEEN unix_timestamp('2021-06-09') AND unix_timestamp('2021-06-11') ORDER BY id DESC
+const history = (id, type, start, end, sort, pages) => {
+  let qs = "SELECT s.username as 'current_user', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE (t.receiver_id=? OR t.sender_id=?)";
+
+  const qs2 = " GROUP BY transaction_id ";
+
+  let filter = false;
+  if (type) {
+    filter = " AND type = ' " + type + "'";
+  }
+
+  let range = false;
+  if (start && end) {
+    range = " AND created_at BETWEEN '" + start + "' AND '" + end + "'";
+  }
+
+  let order = false;
+  if (sort) {
+    const ordered = sort.split("-");
+    if (ordered[0] === "date") {
+      if (ordered[1] === "AZ") {
+        order = " ORDER BY created_at ASC ";
+      } else if (ordered[1] === "ZA") {
+        order = " ORDER BY created_at DESC ";
+      } else {
+        order = false;
+      }
+    } else if (ordered[0] === "amount") {
+      if (ordered[1] === "AZ") {
+        order = " ORDER BY nominal ASC ";
+      } else if (ordered[1] === "ZA") {
+        order = " ORDER BY nominal DESC ";
+      } else {
+        order = false;
+      }
+    }
+  }
+
+  if (!filter && !range && !order) {
+    qs = qs + qs2 + " ORDER BY created_at DESC ";
+  } else if (filter && !range && !order) {
+    qs = qs + filter + qs2 + " ORDER BY created_at DESC ";
+  } else if (!filter && range && !order) {
+    qs = qs + range + qs2 + " ORDER BY created_at DESC ";
+  } else if (!filter && !range && order) {
+    qs = qs + qs2 + order;
+  } else if (filter && range && !order) {
+    qs = qs + filter + range + qs2 + " ORDER BY created_at DESC ";
+  } else if (!filter && range && order) {
+    qs = qs + range + qs2 + order;
+  } else if (filter && range && order) {
+    qs = qs + filter + range + qs2 + order;
+  }
 
   const paginate = " LIMIT ? OFFSET ?";
 
