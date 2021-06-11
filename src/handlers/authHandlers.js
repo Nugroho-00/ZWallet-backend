@@ -46,44 +46,51 @@ const loginAccount = async (req, res) => {
       return responseStandard(res, "Fields can not be empty", {}, 400, false);
     }
     const result = await authModels.getUsersEmail(email);
-    if (result) {
+    if (result.length) {
       const validPass = await bcrypt.compare(password, result[0].password);
       if (!validPass) {
-        return responseStandard(res, "Wrong Email or Password", {}, 400, false);
+        return responseStandard(res, "Wrong Password!!!", {}, 400, false);
       } else {
-        const data = {
-          id: result[0].id,
-          username: result[0].username,
-        };
+        const { id, username } = result[0];
+        const payload = { id, username };
         const options = {
           expiresIn: process.env.EXPIRE,
           issuer: process.env.ISSUER,
         };
-        const token = jwt.sign(data, process.env.SECRET_KEY, options);
+        const token = jwt.sign(payload, process.env.SECRET_KEY, options);
         return responseStandard(res, "Login Succesfully", { token }, 200, true);
       }
+    } else {
+      return responseStandard(res, "Wrong email!!!", {}, 400, false);
     }
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
   }
 };
 
-// const validationPin = async (req, res) => {
-//   try {
-//     const { id } = req.user;
-//     const { pin } = req.body;
-//     const result = await authModels.checkPinModel([pin, id]);
-//     if (result === pin) {
-//       return responseStandard(res, "Success!!");
-//     } else if (result != pin) {
-//       return responseStandard(res, "wrong pin !!");
-//     } else if (result.length < 1) {
-//       return responseStandard(res, "pin not registered!! create pin Now!");
-//     }
-//   } catch (error) {
-//     return responseStandard(res, error.message, {}, 400, false);
-//   }
-// };
+const validationPin = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { pin } = req.body;
+    if (!pin) {
+      return responseStandard(res, "Fields can not be empty", {}, 400, false);
+    }
+    const result = await authModels.checkPinModel(id);
+    if (result) {
+      console.log(result);
+      const validPin = await bcrypt.compare(pin, result[0].pin);
+      if (!validPin) {
+        return responseStandard(res, "Wrong Pin!!!", {}, 400, false);
+      } else {
+        return responseStandard(res, "Confirm Pin Succesfully!", {}, 200, true);
+      }
+    } else {
+      return responseStandard(res, "Pin not registered!!!", {}, 400, false);
+    }
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 400, false);
+  }
+};
 
 const createPinUser = async (req, res) => {
   try {
@@ -94,7 +101,9 @@ const createPinUser = async (req, res) => {
     } else if (pin.length < 6) {
       return responseStandard(res, "Pin must be 6 characters!");
     }
-    await authModels.createPin([pin, id]);
+    const salt = await bcrypt.genSalt(10);
+    const enkripPin = await bcrypt.hash(pin, salt);
+    await authModels.createPin([enkripPin, id]);
     return responseStandard(res, "success create pin!", {}, 200, true);
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
@@ -104,74 +113,100 @@ const createPinUser = async (req, res) => {
 const postOTP = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) {
+      return responseStandard(res, "Field cannot be empty !!", {}, 400, false);
+    }
     const result = await authModels.checkEmailModel(email);
-    if (result) {
+    if (result.length) {
       const otp = generateOTP.generateOTP();
       await authModels.sendOTPModel([otp, result[0].id]);
-      responseStandard(res, null, { ...result[0].id }, 200, true);
-      console.log(otp);
+      responseStandard(
+        res,
+        "Succes send OTP! Please verify your email",
+        { userId: result[0].id },
+        200,
+        true
+      );
       var mailOptions = {
         to: "chasterchaz01@gmail.com",
         subject: "Reset Password OTP",
         html:
-          "<h3>Haloo!! </h3>" +
-          "<h3>Silahkan masukan kode OTP untuk melakukan reset password</h3>" +
+          "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
           "<h1 style='font-weight:bold;'>" +
           otp +
           "</h1>" +
-          "<h5>expired in 5 minutes</h5>",
+          "<p style='font-style:italic;'>expired in 5 minutes</p>",
       };
       transporterMail.sendMail(mailOptions, (error, info) => {
         if (error) {
           return console.log(error);
         }
-        console.log("Message sent: %s", info.messageId);
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
       });
       setTimeout(async () => {
         await authModels.sendOTPModel([otp, result[0].id]);
         console.log("timeout OTP");
       }, 300000);
+    } else {
+      return responseStandard(res, "Wrong email !!", {}, 400, false);
     }
   } catch (error) {
-    responseStandard(res, "error bgsd!!!", { error }, 403, false);
+    responseStandard(res, error.message, {}, 500, false);
   }
 };
 
 const verifyOTP = async (req, res) => {
   try {
-    const { otp, id } = req.body;
-    const result = await authModels.verifyOTPModel([otp, id]);
-    console.log(result);
-    if (result) {
+    const { otp, userId } = req.body;
+    if (!otp || !userId) {
+      return responseStandard(res, "Field cannot be empty !!", {}, 400, false);
+    }
+    const result = await authModels.verifyOTPModel([otp, userId]);
+    if (result.length) {
       const options = {
         expiresIn: process.env.EXPIRE,
         issuer: process.env.ISSUER,
       };
       const payload = {
-        id: id,
+        id: userId,
       };
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
-      responseStandard(res, null, { token }, 200, true);
+      responseStandard(res, "Success verify OTP!", { token }, 200, true);
+    } else {
+      return responseStandard(
+        res,
+        "Wrong your userId or OTP !!!",
+        {},
+        400,
+        false
+      );
     }
   } catch (error) {
-    console.log(error);
-    responseStandard(res, error, {}, 400, false);
+    responseStandard(res, error.message, {}, 400, false);
   }
 };
 
 const resetPassword = async (req, res) => {
   try {
+    const { id } = req.user;
     const { newPassword } = req.body;
+    if (!newPassword) {
+      return responseStandard(res, "Field cannot be empty!", {}, 400, false);
+    }
+    if (newPassword.length < 8) {
+      return responseStandard(
+        res,
+        "Password must be 8 Character!",
+        {},
+        400,
+        false
+      );
+    }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(newPassword, salt);
-    const result = await authModels.resetPasswordModel([
-      hashPassword,
-      req.user.id,
-    ]);
-    responseStandard(res, "success to reset password!", { result }, 200, true);
+    await authModels.resetPasswordModel([hashPassword, id]);
+    responseStandard(res, "success to reset password!", {}, 200, true);
   } catch (error) {
-    responseStandard(res, error, {}, 400, false);
+    responseStandard(res, error, {}, 500, false);
   }
 };
 
@@ -197,4 +232,5 @@ module.exports = {
   resetPassword,
   postOTP,
   verifyOTP,
+  validationPin,
 };

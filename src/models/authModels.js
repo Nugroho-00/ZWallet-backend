@@ -29,7 +29,7 @@ const checkEmailModel = (email) => {
 
 const checkPinModel = (data) => {
   return new Promise((resolve, reject) => {
-    const queryString = "SELECT pin FROM users WHERE id = ?";
+    const queryString = "SELECT * FROM users WHERE id = ?";
     db.query(queryString, data, (error, results) => {
       if (error) {
         return reject(error);
@@ -96,7 +96,7 @@ const resetPasswordModel = (data) => {
 
 const verifyOTPModel = (data) => {
   return new Promise((resolve, reject) => {
-    const queryString = `SELECT id FROM users WHERE otp = ? and id = ?`;
+    const queryString = `SELECT * FROM users WHERE otp = ? and id = ?`;
     db.query(queryString, data, (error, result) => {
       if (error) {
         reject(error);
