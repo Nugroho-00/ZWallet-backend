@@ -177,8 +177,8 @@ const transfer = (sender, receiver, amount, note) => {
   });
 };
 
-const history = (id, pages) => {
-  const qs = "SELECT * FROM transactions WHERE sender_id = ? OR receiver_id = ?";
+const history = (id, search, start, end, sort, pages) => {
+  const qs = "SELECT s.username as 'current_user', r.username as receiver, t.transaction_nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE t.receiver_id=? OR t.sender_id=? GROUP BY created_at";
   // SELECT * FROM transactions WHERE (sender_id =2 OR receiver_id = 2) AND transaction_nominal>10000 AND type='top up' AND DATE(created_at) BETWEEN unix_timestamp('2021-06-09') AND unix_timestamp('2021-06-11') ORDER BY id DESC
 
   const paginate = " LIMIT ? OFFSET ?";

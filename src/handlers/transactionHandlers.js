@@ -1,6 +1,7 @@
+/* eslint-disable camelcase */
 const {
   responseStandard,
-  writeResponsePaginated,
+  writeResponsePaginated
 } = require("../helpers/response");
 const transactionModels = require("../models/transactionModels");
 
@@ -95,9 +96,9 @@ const history = async (req, res) => {
   const { baseUrl, path, hostname, protocol } = req;
   try {
     const { id } = req.user;
-    const { pages } = req.query;
+    const { search, start, end, sort, pages } = req.query;
 
-    const finalResult = await transactionModels.history(id, pages);
+    const finalResult = await transactionModels.history(id, search, start, end, sort, pages);
     const { result, count, page, limit } = finalResult;
     const totalPage = Math.ceil(count / limit) || 1;
 
@@ -111,7 +112,7 @@ const history = async (req, res) => {
       page,
       totalPage,
       next,
-      prev,
+      prev
     };
     return writeResponsePaginated(res, 200, info, result);
   } catch (error) {
