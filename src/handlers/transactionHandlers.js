@@ -47,7 +47,7 @@ const topUp = async (req, res) => {
 const transfer = async (req, res) => {
   try {
     const { id } = req.user;
-    const { receiver_id, amount, note } = req.body;
+    const { receiverPhone, amount, note } = req.body;
 
     if (!amount) {
       return responseStandard(
@@ -68,7 +68,7 @@ const transfer = async (req, res) => {
     }
     const result = await transactionModels.transfer(
       id,
-      receiver_id,
+      receiverPhone,
       amount,
       note
     );
