@@ -66,10 +66,11 @@ const updateAccountModel = (data) => {
   });
 };
 
+const getMyContact = () => {};
 module.exports = {
   getAccountModel,
   updateAccountModel,
   getUsersId,
   changePinModel,
-  changePassword,
+  changePassword
 };
