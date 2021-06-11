@@ -207,7 +207,7 @@ const history = (id, type, start, end, sort, pages) => {
 
   let filter = false;
   if (type) {
-    filter = " AND type = ' " + type + "'";
+    filter = " AND type = '" + type + "'";
   }
 
   let range = false;
