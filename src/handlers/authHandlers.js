@@ -94,7 +94,7 @@ const createPinUser = async (req, res) => {
     } else if (pin.length < 6) {
       return responseStandard(res, "Pin must be 6 characters!");
     }
-    await authModels.createPin(pin, id);
+    await authModels.createPin([pin, id]);
     return responseStandard(res, "success create pin!", {}, 200, true);
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
@@ -134,7 +134,7 @@ const postOTP = async (req, res) => {
       }, 300000);
     }
   } catch (error) {
-    responseStandard(res, error.message, {}, 403, false);
+    responseStandard(res, "error bgsd!!!", { error }, 403, false);
   }
 };
 

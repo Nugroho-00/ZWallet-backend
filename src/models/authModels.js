@@ -16,7 +16,7 @@ const createAcount = (data) => {
 
 const checkEmailModel = (email) => {
   return new Promise((resolve, reject) => {
-    const queryString = "SELECT email FROM users WHERE email = ?";
+    const queryString = "SELECT * FROM users WHERE email = ?";
     db.query(queryString, email, (error, results) => {
       if (error) {
         return reject(error);
@@ -68,7 +68,7 @@ const getToken = (token) => {
 
 const createPin = (data) => {
   return new Promise((resolve, reject) => {
-    const queryString = "UPDATE users SET pin = ?";
+    const queryString = "UPDATE users SET pin = ? WHERE id = ?";
     db.query(queryString, data, (err, result) => {
       if (err) {
         reject(err);
@@ -146,5 +146,5 @@ module.exports = {
   resetPasswordModel,
   sendOTPModel,
   verifyOTPModel,
-  logoutModel
+  logoutModel,
 };

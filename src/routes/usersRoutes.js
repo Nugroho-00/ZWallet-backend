@@ -1,5 +1,9 @@
 const Router = require("express").Router();
-const { getAccountInfo, updateAccount } = require("../handlers/usersHandlers");
+const {
+  getAccountInfo,
+  updateAccount,
+  changePinHandlers,
+} = require("../handlers/usersHandlers");
 const { authentication } = require("../middlewares/authentication");
 const {
   errorMulterHandler,
@@ -13,5 +17,6 @@ Router.patch(
   errorMulterHandler(uploadAvatarImage.single("image")),
   updateAccount
 );
+Router.patch("/edit-pin", authentication, changePinHandlers);
 
 module.exports = Router;
