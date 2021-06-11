@@ -2,7 +2,7 @@
 const db = require("../database/dbMysql");
 
 const topUp = (id, amount) => {
-  const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   return new Promise((resolve, reject) => {
     const getPrevBalance =
       "SELECT balance_nominal FROM balances WHERE user_id = ?";
@@ -32,7 +32,7 @@ const topUp = (id, amount) => {
                 receiver_id: id,
                 nominal: amount,
                 type: "topup",
-                transaction_id: transaction_id
+                transaction_id: id
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -61,7 +61,7 @@ const topUp = (id, amount) => {
                 receiver_id: id,
                 nominal: amount,
                 type: "topup",
-                transaction_id: transaction_id
+                transaction_id: id
 
               };
               const addHistory = "INSERT INTO transactions SET ?";
@@ -81,7 +81,7 @@ const topUp = (id, amount) => {
 };
 
 const transfer = (sender, phone, amount, note) => {
-  const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
   let receiver, senderBalance, receiverBalance;
 
@@ -112,7 +112,7 @@ const transfer = (sender, phone, amount, note) => {
                 nominal: amount,
                 type: "credit",
                 note: note,
-                transaction_id: transaction_id
+                transaction_id: sender
 
               };
 
@@ -122,7 +122,7 @@ const transfer = (sender, phone, amount, note) => {
                 nominal: amount,
                 type: "debit",
                 note: note,
-                transaction_id: transaction_id
+                transaction_id: receiver
 
               };
 
@@ -201,9 +201,9 @@ const transfer = (sender, phone, amount, note) => {
 };
 
 const history = (id, type, start, end, sort, pages) => {
-  let qs = "SELECT s.username as 'current_user', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE (t.receiver_id=? OR t.sender_id=?)";
+  let qs = "SELECT s.username as 'sender', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE (t.transaction_id = ?)";
 
-  const qs2 = " GROUP BY transaction_id ";
+  // const qs2 = " GROUP BY transaction_id ";
 
   let filter = false;
   if (type) {
@@ -238,19 +238,26 @@ const history = (id, type, start, end, sort, pages) => {
   }
 
   if (!filter && !range && !order) {
-    qs = qs + qs2 + " ORDER BY created_at DESC ";
+    // qs = qs + qs2 + " ORDER BY created_at DESC ";
+    qs = qs + " ORDER BY created_at DESC ";
   } else if (filter && !range && !order) {
-    qs = qs + filter + qs2 + " ORDER BY created_at DESC ";
+    // qs = qs + filter + qs2 + " ORDER BY created_at DESC ";
+    qs = qs + filter + " ORDER BY created_at DESC ";
   } else if (!filter && range && !order) {
-    qs = qs + range + qs2 + " ORDER BY created_at DESC ";
+    // qs = qs + range + qs2 + " ORDER BY created_at DESC ";
+    qs = qs + range + " ORDER BY created_at DESC ";
   } else if (!filter && !range && order) {
-    qs = qs + qs2 + order;
+    // qs = qs + qs2 + order;
+    qs = qs + order;
   } else if (filter && range && !order) {
-    qs = qs + filter + range + qs2 + " ORDER BY created_at DESC ";
+    // qs = qs + filter + range + qs2 + " ORDER BY created_at DESC ";
+    qs = qs + filter + range + " ORDER BY created_at DESC ";
   } else if (!filter && range && order) {
-    qs = qs + range + qs2 + order;
+    // qs = qs + range + qs2 + order;
+    qs = qs + range + order;
   } else if (filter && range && order) {
-    qs = qs + filter + range + qs2 + order;
+    // qs = qs + filter + range + qs2 + order;
+    qs = qs + filter + range + order;
   }
 
   const paginate = " LIMIT ? OFFSET ?";
@@ -262,12 +269,12 @@ const history = (id, type, start, end, sort, pages) => {
   const offset = (page - 1) * limit;
 
   return new Promise((resolve, reject) => {
-    db.query(fullQuery, [id, id, limit, offset], (error, result) => {
+    db.query(fullQuery, [id, limit, offset], (error, result) => {
       if (error) {
         return reject(error);
       } else {
         const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
-        db.query(qsCount, [id, id], (error, data) => {
+        db.query(qsCount, [id], (error, data) => {
           if (error) {
             return reject(error);
           } else {
@@ -312,7 +319,7 @@ const subscribe = (id, productId) => {
                 sender_id: id,
                 nominal: price,
                 type: "subscription",
-                transaction_id: transaction_id
+                transaction_id: id
               };
 
               const dataReceiver = {
