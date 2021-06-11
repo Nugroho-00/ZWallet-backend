@@ -42,4 +42,30 @@ const updateAccount = async (req, res) => {
   }
 };
 
-module.exports = { getAccountInfo, updateAccount };
+const changePinHandlers = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { oldPin, newPin, newPinConfirmation } = req.body;
+    const checkPin = await usersModels.getUsersId(id);
+    if (checkPin[0].pin === oldPin) {
+      if (newPin === newPinConfirmation) {
+        const result = await usersModels.changePinModel([newPin, id]);
+        responseStandard(res, "Success update pin", {}, 200, true);
+      } else {
+        responseStandard(
+          res,
+          "New pin and new pin confirmation must be the same",
+          {},
+          401,
+          false
+        );
+      }
+    } else {
+      return responseStandard(res, "Old pin wrong", {}, 401, false);
+    }
+  } catch (error) {
+    return responseStandard(res, error, {}, 400, false);
+  }
+};
+
+module.exports = { getAccountInfo, updateAccount, changePinHandlers };
