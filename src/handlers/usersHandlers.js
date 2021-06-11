@@ -122,9 +122,33 @@ const changePasswordHandlers = async (req, res) => {
   }
 };
 
+const getMyContact = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const result = await usersModels.getMyContact(id);
+    if (result) {
+      // console.log(result);
+      if (result.conflict) {
+        return responseStandard(res, result.conflict, {}, 200, false);
+      } else {
+        return responseStandard(
+          res,
+          null,
+          { data: result },
+          200,
+          true
+        );
+      }
+    }
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 500, false);
+  }
+};
+
 module.exports = {
   getAccountInfo,
   updateAccount,
   changePinHandlers,
   changePasswordHandlers,
+  getMyContact
 };

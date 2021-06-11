@@ -4,11 +4,12 @@ const {
   updateAccount,
   changePinHandlers,
   changePasswordHandlers,
+  getMyContact
 } = require("../handlers/usersHandlers");
 const { authentication } = require("../middlewares/authentication");
 const {
   errorMulterHandler,
-  uploadAvatarImage,
+  uploadAvatarImage
 } = require("../middlewares/multer");
 
 Router.get("/", authentication, getAccountInfo);
@@ -20,5 +21,7 @@ Router.patch(
 );
 Router.patch("/edit-pin", authentication, changePinHandlers);
 Router.patch("/edit-password", authentication, changePasswordHandlers);
+
+Router.get("/my-contact", authentication, getMyContact);
 
 module.exports = Router;

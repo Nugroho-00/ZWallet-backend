@@ -66,11 +66,26 @@ const updateAccountModel = (data) => {
   });
 };
 
-const getMyContact = () => {};
+const getMyContact = (id) => {
+  return new Promise((resolve, reject) => {
+    const queryString = "SELECT DISTINCT u.id, u.username, u.phone,  COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
+
+    db.query(queryString, [id, id, id], (error, result) => {
+      if (error) {
+        return reject(error);
+      } else if (result.length === 0) {
+        return resolve({ conflict: "You don't have any contact yet" });
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 module.exports = {
   getAccountModel,
   updateAccountModel,
   getUsersId,
   changePinModel,
-  changePassword
+  changePassword,
+  getMyContact
 };
