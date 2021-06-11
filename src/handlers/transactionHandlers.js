@@ -96,17 +96,43 @@ const history = async (req, res) => {
   const { baseUrl, path, hostname, protocol } = req;
   try {
     const { id } = req.user;
-    const { search, start, end, sort, pages } = req.query;
+    const { type, start, end, sort, pages } = req.query;
 
-    const finalResult = await transactionModels.history(id, search, start, end, sort, pages);
+    const finalResult = await transactionModels.history(id, type, start, end, sort, pages);
     const { result, count, page, limit } = finalResult;
     const totalPage = Math.ceil(count / limit) || 1;
 
     const url =
       protocol + "://" + hostname + ":" + process.env.PORT + baseUrl + path;
 
-    const prev = page === 1 ? null : url + `?pages=${page - 1}`;
-    const next = page === totalPage ? null : url + `?pages=${page + 1}`;
+    // const prev = page === 1 ? null : url + `?pages=${page - 1}`;
+    // const next = page === totalPage ? null : url + `?pages=${page + 1}`;
+
+    let prev, next;
+
+    if (!type && !start && !end && !sort) {
+      prev = page === 1 ? null : url + `?pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?pages=${page + 1}`;
+    } else if (type && !start && !end && !sort) {
+      prev = page === 1 ? null : url + `?type=${type}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?type=${type}&pages=${page + 1}`;
+    } else if (!type && start && end && !sort) {
+      prev = page === 1 ? null : url + `?start=${start}&end=${end}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?start=${start}&end=${end}&pages=${page + 1}`;
+    } else if (!type && !start && !end && sort) {
+      prev = page === 1 ? null : url + `?sort=${sort}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?sort=${sort}&pages=${page + 1}`;
+    } else if (type && start && end && !sort) {
+      prev = page === 1 ? null : url + `?type=${type}&start=${start}&end=${end}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?type=${type}&start=${start}&end=${end}&pages=${page + 1}`;
+    } else if (!type && start && end && sort) {
+      prev = page === 1 ? null : url + `?start=${start}&end=${end}&sort=${sort}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?start=${start}&end=${end}&sort=${sort}&pages=${page + 1}`;
+    } else if (type && start && end && sort) {
+      prev = page === 1 ? null : url + `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${page + 1}`;
+    }
+
     const info = {
       count,
       page,
