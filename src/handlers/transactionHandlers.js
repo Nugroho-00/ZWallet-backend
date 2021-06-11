@@ -147,4 +147,43 @@ const history = async (req, res) => {
   }
 };
 
-module.exports = { topUp, transfer, history };
+const subscribe = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { productId } = req.body;
+
+    console.log(productId);
+
+    if (!productId) {
+      return responseStandard(
+        res,
+        "This field can not be empty",
+        {},
+        400,
+        false
+      );
+    }
+    const result = await transactionModels.subscribe(
+      id,
+      productId
+    );
+    if (result) {
+      console.log(result);
+      if (result.conflict) {
+        return responseStandard(res, result.conflict, {}, 200, false);
+      } else {
+        return responseStandard(
+          res,
+          "You have successfully subscribed. Your balance will be deducted according to the price listed!",
+          {},
+          200,
+          true
+        );
+      }
+    }
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 500, false);
+  }
+};
+
+module.exports = { topUp, transfer, history, subscribe };

@@ -285,8 +285,83 @@ const history = (id, type, start, end, sort, pages) => {
     });
   });
 };
+
+const subscribe = (id, productId) => {
+  const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+  let price, senderBalance;
+  return new Promise((resolve, reject) => {
+    const checkPrice = "SELECT price from products WHERE id = ? ";
+    db.query(checkPrice, productId, (error, result) => {
+      if (error) {
+        return reject(error);
+      } else if (result.length === 0) {
+        return resolve({ conflict: "Sorry. Product ID not recognized" });
+      } else {
+        price = result[0].price;
+
+        // Check sender balance
+        const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
+        db.query(getPrevBalance, id, (error, result) => {
+          if (error) {
+            return reject(error);
+          } else if (result.length > 0) {
+            senderBalance = Number(result[0].balance_nominal);
+            if (senderBalance >= price) {
+              const dataSender = {
+                sender_id: id,
+                nominal: price,
+                type: "subscription",
+                transaction_id: transaction_id
+              };
+
+              const dataReceiver = {
+                product_id: productId,
+                transaction_id: transaction_id,
+                status: "active"
+              };
+
+              const addTransaction = "INSERT INTO transactions SET ?";
+              db.query(addTransaction, dataSender, (error, result) => {
+                if (error) {
+                  return reject(error);
+                } else {
+                  const data = {
+                    balance_nominal: senderBalance - Number(price)
+                  };
+
+                  const updateBalance = "UPDATE balances SET ? WHERE user_id = ?";
+                  db.query(updateBalance, [data, id], (error, result) => {
+                    if (error) {
+                      return reject(error);
+                    } else {
+                      const addSubcription = "INSERT INTO subscriptions SET ?";
+                      db.query(addSubcription, dataReceiver, (error, result) => {
+                        if (error) {
+                          return reject(error);
+                        } else {
+                          resolve(result);
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            } else {
+              return resolve({ conflict: "Not enough balance" });
+            }
+          } else {
+            return resolve({ conflict: "Not enough balance" });
+          }
+        });
+      }
+    });
+  });
+};
+
 module.exports = {
   topUp,
   transfer,
-  history
+  history,
+  subscribe
 };
