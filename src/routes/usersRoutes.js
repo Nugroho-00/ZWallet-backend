@@ -3,6 +3,7 @@ const {
   getAccountInfo,
   updateAccount,
   changePinHandlers,
+  changePasswordHandlers,
 } = require("../handlers/usersHandlers");
 const { authentication } = require("../middlewares/authentication");
 const {
@@ -18,5 +19,6 @@ Router.patch(
   updateAccount
 );
 Router.patch("/edit-pin", authentication, changePinHandlers);
+Router.patch("/edit-password", authentication, changePasswordHandlers);
 
 module.exports = Router;

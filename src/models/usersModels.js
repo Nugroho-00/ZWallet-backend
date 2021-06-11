@@ -42,7 +42,7 @@ const changePinModel = (data) => {
 
 const changePassword = (data) => {
   return new Promise((resolve, reject) => {
-    const queryString = "";
+    const queryString = "UPDATE users SET password = ? WHERE id = ?";
     db.query(queryString, data, (error, result) => {
       if (error) {
         reject(error);
@@ -70,5 +70,6 @@ module.exports = {
   getAccountModel,
   updateAccountModel,
   getUsersId,
-  changePinModel
+  changePinModel,
+  changePassword,
 };
