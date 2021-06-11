@@ -32,7 +32,7 @@ const topUp = (id, amount) => {
                 receiver_id: id,
                 nominal: amount,
                 type: "topup",
-                transaction_id: id
+                executor_id: id
               };
               const addHistory = "INSERT INTO transactions SET ?";
               db.query(addHistory, historyData, (error, result) => {
@@ -61,7 +61,7 @@ const topUp = (id, amount) => {
                 receiver_id: id,
                 nominal: amount,
                 type: "topup",
-                transaction_id: id
+                executor_id: id
 
               };
               const addHistory = "INSERT INTO transactions SET ?";
@@ -112,7 +112,7 @@ const transfer = (sender, phone, amount, note) => {
                 nominal: amount,
                 type: "credit",
                 note: note,
-                transaction_id: sender
+                executor_id: sender
 
               };
 
@@ -122,7 +122,7 @@ const transfer = (sender, phone, amount, note) => {
                 nominal: amount,
                 type: "debit",
                 note: note,
-                transaction_id: receiver
+                executor_id: receiver
 
               };
 
@@ -201,7 +201,7 @@ const transfer = (sender, phone, amount, note) => {
 };
 
 const history = (id, type, start, end, sort, pages) => {
-  let qs = "SELECT s.username as 'sender', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id JOIN users r ON t.receiver_id = r.id WHERE (t.transaction_id = ?)";
+  let qs = "SELECT s.username as 'sender', r.username as receiver, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id WHERE t.executor_id= ?";
 
   // const qs2 = " GROUP BY transaction_id ";
 
@@ -294,11 +294,11 @@ const history = (id, type, start, end, sort, pages) => {
 };
 
 const subscribe = (id, productId) => {
-  const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-  let price, senderBalance;
+  let productName, price, senderBalance;
   return new Promise((resolve, reject) => {
-    const checkPrice = "SELECT price from products WHERE id = ? ";
+    const checkPrice = "SELECT name, price from products WHERE id = ? ";
     db.query(checkPrice, productId, (error, result) => {
       if (error) {
         return reject(error);
@@ -306,6 +306,7 @@ const subscribe = (id, productId) => {
         return resolve({ conflict: "Sorry. Product ID not recognized" });
       } else {
         price = result[0].price;
+        productName = result[0].name;
 
         // Check sender balance
         const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
@@ -317,14 +318,15 @@ const subscribe = (id, productId) => {
             if (senderBalance >= price) {
               const dataSender = {
                 sender_id: id,
+                // receiver_id: productName,
                 nominal: price,
                 type: "subscription",
-                transaction_id: id
+                executor_id: id
               };
 
               const dataReceiver = {
                 product_id: productId,
-                transaction_id: transaction_id,
+                executor_id: id,
                 status: "active"
               };
 
