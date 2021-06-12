@@ -127,7 +127,7 @@ const postOTP = async (req, res) => {
         true
       );
       var mailOptions = {
-        to: "chasterchaz01@gmail.com",
+        to: email,
         subject: "Reset Password OTP",
         html:
           "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
