@@ -1,5 +1,8 @@
 const usersModels = require("../models/usersModels");
-const { responseStandard, writeResponsePaginated } = require("../helpers/response");
+const {
+  responseStandard,
+  writeResponsePaginated,
+} = require("../helpers/response");
 const bcrypt = require("bcrypt");
 
 const getAccountInfo = async (req, res) => {
@@ -22,7 +25,7 @@ const updateAccount = async (req, res) => {
     let valueUpdate = req.body;
     const users = await usersModels.getAccountModel(id);
     if (!users) {
-      responseStandard(res, "Users not found !!", {}, 404, false);
+      return responseStandard(res, "Users not found !!", {}, 404, false);
     }
     if (req.file) {
       const { file } = req;
@@ -31,7 +34,7 @@ const updateAccount = async (req, res) => {
       valueUpdate = { ...valueUpdate, avatar };
     }
     await usersModels.updateAccountModel([valueUpdate, id]);
-    responseStandard(
+    return responseStandard(
       res,
       "Profile has been updated",
       { results: valueUpdate },
@@ -39,16 +42,25 @@ const updateAccount = async (req, res) => {
       true
     );
   } catch (error) {
-    responseStandard(res, error, {}, 400, false);
+    return responseStandard(res, error, {}, 400, false);
   }
 };
 
 const changePinHandlers = async (req, res) => {
   try {
     const { id } = req.user;
-    const { oldPin, newPin, newPinConfirmation } = req.body;
-    if (!oldPin || !newPin || !newPinConfirmation) {
+    const { oldPin, newPin } = req.body;
+    if (!oldPin || !newPin) {
       return responseStandard(res, "Field cannot be empty!!!", {}, 400, false);
+    }
+    if (newPin.length < 6) {
+      return responseStandard(
+        res,
+        "NewPin must be 6 character!!!",
+        {},
+        400,
+        false
+      );
     }
     const checkPin = await usersModels.getUsersId(id);
     const validPin = await bcrypt.compare(oldPin, checkPin[0].pin);
@@ -56,20 +68,10 @@ const changePinHandlers = async (req, res) => {
       return responseStandard(res, "Old pin wrong", {}, 400, false);
     }
     if (validPin) {
-      if (newPinConfirmation === newPin) {
-        const salt = await bcrypt.genSalt(10);
-        const enkripPin = await bcrypt.hash(newPin, salt);
-        await usersModels.changePinModel([enkripPin, id]);
-        responseStandard(res, "Success update pin", {}, 200, true);
-      } else {
-        responseStandard(
-          res,
-          "NewPin and NewPinConfirmation must be the same!",
-          {},
-          401,
-          false
-        );
-      }
+      const salt = await bcrypt.genSalt(10);
+      const enkripPin = await bcrypt.hash(newPin, salt);
+      await usersModels.changePinModel([enkripPin, id]);
+      responseStandard(res, "Success update pin", {}, 200, true);
     } else {
       return responseStandard(res, "Failed to change Pin!!", {}, 400, false);
     }
@@ -145,13 +147,21 @@ const getMyContact = async (req, res) => {
       next = page === totalPage ? null : url + `?pages=${page + 1}`;
     } else if (search && !sort) {
       prev = page === 1 ? null : url + `?search=${search}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?search=${search}&pages=${page + 1}`;
+      next =
+        page === totalPage ? null : url + `?search=${search}&pages=${page + 1}`;
     } else if (!search && sort) {
       prev = page === 1 ? null : url + `?sort=${sort}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?sort=${sort}&pages=${page + 1}`;
+      next =
+        page === totalPage ? null : url + `?sort=${sort}&pages=${page + 1}`;
     } else if (search && sort) {
-      prev = page === 1 ? null : url + `?search=${search}&sort=${sort}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?search=${search}&sort=${sort}&pages=${page + 1}`;
+      prev =
+        page === 1
+          ? null
+          : url + `?search=${search}&sort=${sort}&pages=${page - 1}`;
+      next =
+        page === totalPage
+          ? null
+          : url + `?search=${search}&sort=${sort}&pages=${page + 1}`;
     }
 
     if (finalResult) {
@@ -164,7 +174,7 @@ const getMyContact = async (req, res) => {
           page,
           totalPage,
           next,
-          prev
+          prev,
         };
         return writeResponsePaginated(res, 200, info, result);
       }
@@ -180,5 +190,5 @@ module.exports = {
   updateAccount,
   changePinHandlers,
   changePasswordHandlers,
-  getMyContact
+  getMyContact,
 };
