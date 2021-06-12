@@ -68,7 +68,7 @@ const updateAccountModel = (data) => {
 
 const getMyContact = (id, search, sort, pages) => {
   return new Promise((resolve, reject) => {
-    let qs = "SELECT DISTINCT u.id, u.username, u.phone, u.avatar, COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
+    let qs = "SELECT DISTINCT u.id, u.username, u.phone, u.avatar, COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.type != 'subscription' AND t.executor_id != ?";
 
     let order = false;
     if (sort) {
