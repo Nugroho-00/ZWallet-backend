@@ -66,17 +66,70 @@ const updateAccountModel = (data) => {
   });
 };
 
-const getMyContact = (id) => {
+const getMyContact = (id, search, sort, pages) => {
   return new Promise((resolve, reject) => {
-    const queryString = "SELECT DISTINCT u.id, u.username, u.phone,  COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
+    let qs = "SELECT DISTINCT u.id, u.username, u.phone,  COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
 
-    db.query(queryString, [id, id, id], (error, result) => {
+    let order = false;
+    if (sort) {
+      const ordered = sort.split("-");
+      if (ordered[0] === "name") {
+        if (ordered[1] === "AZ") {
+          order = " ORDER BY u.username ASC ";
+        } else if (ordered[1] === "ZA") {
+          order = " ORDER BY u.username DESC ";
+        } else {
+          order = false;
+        }
+      } else if (ordered[0] === "rank") {
+        if (ordered[1] === "AZ") {
+          order = " ORDER BY rank ASC ";
+        } else if (ordered[1] === "ZA") {
+          order = " ORDER BY rank DESC ";
+        } else {
+          order = false;
+        }
+      }
+    }
+    if (!search && !order) {
+      qs = qs + " ORDER BY u.username ASC";
+    } else if (search && !order) {
+      qs = qs + " AND u.username LIKE '%" + search + "%' ";
+    } else if (!search && order) {
+      qs = qs + order;
+    } else if (search && order) {
+      qs = qs + " AND u.username LIKE '%" + search + "%' " + order;
+    }
+
+    const paginate = " LIMIT ? OFFSET ?";
+
+    const fullQuery = qs + paginate;
+
+    const limit = 5;
+    const page = Number(pages) || 1;
+    const offset = (page - 1) * limit;
+
+    db.query(fullQuery, [id, id, id, limit, offset], (error, result) => {
       if (error) {
         return reject(error);
       } else if (result.length === 0) {
         return resolve({ conflict: "You don't have any contact yet" });
       } else {
-        resolve(result);
+        const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
+        db.query(qsCount, [id, id, id], (error, data) => {
+          if (error) {
+            return reject(error);
+          } else {
+            const { count } = data[0];
+            const finalResult = {
+              result,
+              count,
+              page,
+              limit
+            };
+            resolve(finalResult);
+          }
+        });
       }
     });
   });
