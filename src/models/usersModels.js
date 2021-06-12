@@ -68,7 +68,7 @@ const updateAccountModel = (data) => {
 
 const getMyContact = (id, search, sort, pages) => {
   return new Promise((resolve, reject) => {
-    let qs = "SELECT DISTINCT u.id, u.username, u.phone,  COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
+    let qs = "SELECT DISTINCT u.id, u.username, u.phone, u.avatar, COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.executor_id != ?";
 
     let order = false;
     if (sort) {
@@ -114,6 +114,9 @@ const getMyContact = (id, search, sort, pages) => {
         return reject(error);
       } else if (result.length === 0) {
         return resolve({ conflict: "You don't have any contact yet" });
+      } else if (!result[0].id) {
+        // console.log(result);
+        return resolve({ conflict: "You found nothing" });
       } else {
         const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
         db.query(qsCount, [id, id, id], (error, data) => {
