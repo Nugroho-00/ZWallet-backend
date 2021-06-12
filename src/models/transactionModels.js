@@ -296,7 +296,8 @@ const history = (id, type, start, end, sort, pages) => {
 const subscribe = (id, productId) => {
   // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-  let productName, price, senderBalance;
+  // let productName;
+  let price, senderBalance;
   return new Promise((resolve, reject) => {
     const checkPrice = "SELECT name, price from products WHERE id = ? ";
     db.query(checkPrice, productId, (error, result) => {
@@ -306,7 +307,7 @@ const subscribe = (id, productId) => {
         return resolve({ conflict: "Sorry. Product ID not recognized" });
       } else {
         price = result[0].price;
-        productName = result[0].name;
+        // productName = result[0].name;
 
         // Check sender balance
         const getPrevBalance = "SELECT balance_nominal FROM balances WHERE user_id = ?";
