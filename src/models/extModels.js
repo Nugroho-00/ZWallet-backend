@@ -27,7 +27,7 @@ const getProduct = () => {
 };
 
 const findUser = (phone) => {
-  const qs = "SELECT * FROM users WHERE phone = ?";
+  const qs = "SELECT id, username, phone, avatar FROM users WHERE phone = ?";
   return new Promise((resolve, reject) => {
     db.query(qs, phone, (error, result) => {
       if (error) {
