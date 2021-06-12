@@ -20,15 +20,15 @@ const authRoute = require("./src/routes/authRoutes");
 const usersRoute = require("./src/routes/usersRoutes");
 const transactionRoute = require("./src/routes/transactionRoutes");
 const notificationRoute = require("./src/routes/notificationRouters");
-const subsRoute = require("./src/routes/subsRoutes");
+const extRoute = require("./src/routes/extRoutes");
 
 // route acces
 app.use("/auth", authRoute);
 app.use("/profile", usersRoute);
 app.use("/transaction", transactionRoute);
 
-// temporary route
-app.use("/ext", subsRoute);
+// extra route
+app.use("/ext", extRoute);
 app.use("/notification", notificationRoute);
 
 app.listen(process.env.PORT, () => {

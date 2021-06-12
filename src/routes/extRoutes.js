@@ -5,10 +5,12 @@ const {
   uploadAvatarImage
 } = require("../middlewares/multer");
 const {
-  createProduct, getProduct
-} = require("../handlers/subsHandlers");
+  createProduct, getProduct, findUser
+} = require("../handlers/extHandlers");
 
 Router.post("/subs", errorMulterHandler(uploadAvatarImage.single("image")), authentication, createProduct);
 Router.get("/subs", authentication, getProduct);
+
+Router.get("/find", authentication, findUser);
 
 module.exports = Router;

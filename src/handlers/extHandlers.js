@@ -1,5 +1,5 @@
 const { responseStandard } = require("../helpers/response");
-const subsModels = require("../models/subsModel");
+const extModels = require("../models/extModels");
 
 const createProduct = async (req, res) => {
   try {
@@ -12,7 +12,7 @@ const createProduct = async (req, res) => {
       dataProduct = { ...dataProduct, avatar };
     }
     console.log("heio", dataProduct);
-    const result = await subsModels.createProduct(dataProduct);
+    const result = await extModels.createProduct(dataProduct);
     if (result) {
       console.log(result);
       return responseStandard(
@@ -32,7 +32,7 @@ const createProduct = async (req, res) => {
 const getProduct = async (req, res) => {
   try {
     const { id } = req.user;
-    const result = await subsModels.getProduct(id);
+    const result = await extModels.getProduct(id);
     if (result) {
       console.log(result);
       return responseStandard(
@@ -49,7 +49,31 @@ const getProduct = async (req, res) => {
   }
 };
 
+const findUser = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const result = await extModels.findUser(phone);
+
+    if (result) {
+      if (result.conflict) {
+        return responseStandard(res, result.conflict, {}, 200, false);
+      } else {
+        return responseStandard(
+          res,
+          "User found",
+          { result },
+          200,
+          true
+        );
+      }
+    }
+  } catch (error) {
+    return responseStandard(res, error.message, {}, 500, false);
+  }
+};
+
 module.exports = {
   createProduct,
-  getProduct
+  getProduct,
+  findUser
 };
