@@ -1,5 +1,5 @@
 const usersModels = require("../models/usersModels");
-const { responseStandard } = require("../helpers/response");
+const { responseStandard, writeResponsePaginated } = require("../helpers/response");
 const bcrypt = require("bcrypt");
 
 const getAccountInfo = async (req, res) => {
@@ -123,24 +123,54 @@ const changePasswordHandlers = async (req, res) => {
 };
 
 const getMyContact = async (req, res) => {
+  const { baseUrl, path, hostname, protocol } = req;
+
   try {
     const { id } = req.user;
-    const result = await usersModels.getMyContact(id);
-    if (result) {
+    const { search, sort, pages } = req.query;
+    const finalResult = await usersModels.getMyContact(id, search, sort, pages);
+
+    const { result, count, page, limit } = finalResult;
+    const totalPage = Math.ceil(count / limit) || 1;
+
+    const url =
+      protocol + "://" + hostname + ":" + process.env.PORT + baseUrl + path;
+
+    // const prev = page === 1 ? null : url + `?pages=${page - 1}`;
+    // const next = page === totalPage ? null : url + `?pages=${page + 1}`;
+
+    let prev, next;
+    if (!search && !sort) {
+      prev = page === 1 ? null : url + `?pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?pages=${page + 1}`;
+    } else if (search && !sort) {
+      prev = page === 1 ? null : url + `?search=${search}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?search=${search}&pages=${page + 1}`;
+    } else if (!search && sort) {
+      prev = page === 1 ? null : url + `?sort=${sort}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?sort=${sort}&pages=${page + 1}`;
+    } else if (search && sort) {
+      prev = page === 1 ? null : url + `?search=${search}&sort=${sort}&pages=${page - 1}`;
+      next = page === totalPage ? null : url + `?search=${search}&sort=${sort}&pages=${page + 1}`;
+    }
+
+    if (finalResult) {
       // console.log(result);
-      if (result.conflict) {
-        return responseStandard(res, result.conflict, {}, 200, false);
+      if (finalResult.conflict) {
+        return responseStandard(res, finalResult.conflict, {}, 200, false);
       } else {
-        return responseStandard(
-          res,
-          null,
-          { data: result },
-          200,
-          true
-        );
+        const info = {
+          count,
+          page,
+          totalPage,
+          next,
+          prev
+        };
+        return writeResponsePaginated(res, 200, info, result);
       }
     }
   } catch (error) {
+    // console.log(error);
     return responseStandard(res, error.message, {}, 500, false);
   }
 };
