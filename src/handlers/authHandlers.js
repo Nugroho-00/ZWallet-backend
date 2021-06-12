@@ -77,7 +77,6 @@ const validationPin = async (req, res) => {
     }
     const result = await authModels.checkPinModel(id);
     if (result) {
-      console.log(result);
       const validPin = await bcrypt.compare(pin, result[0].pin);
       if (!validPin) {
         return responseStandard(res, "Wrong Pin!!!", {}, 400, false);
@@ -104,7 +103,7 @@ const createPinUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const enkripPin = await bcrypt.hash(pin, salt);
     await authModels.createPin([enkripPin, id]);
-    return responseStandard(res, "success create pin!", {}, 200, true);
+    return responseStandard(res, "Success create pin!", {}, 200, true);
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
   }
@@ -147,7 +146,7 @@ const postOTP = async (req, res) => {
         console.log("timeout OTP");
       }, 300000);
     } else {
-      return responseStandard(res, "Wrong email !!", {}, 400, false);
+      return responseStandard(res, "Email not found !!!", {}, 400, false);
     }
   } catch (error) {
     responseStandard(res, error.message, {}, 500, false);
@@ -204,7 +203,7 @@ const resetPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(newPassword, salt);
     await authModels.resetPasswordModel([hashPassword, id]);
-    responseStandard(res, "success to reset password!", {}, 200, true);
+    responseStandard(res, "Success to reset password!", {}, 200, true);
   } catch (error) {
     responseStandard(res, error, {}, 500, false);
   }
