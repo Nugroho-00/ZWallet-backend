@@ -128,7 +128,7 @@ const getMyContact = (id, search, sort, pages) => {
               result,
               count,
               page,
-              limit
+              limit,
             };
             resolve(finalResult);
           }
@@ -143,5 +143,5 @@ module.exports = {
   getUsersId,
   changePinModel,
   changePassword,
-  getMyContact
+  getMyContact,
 };
