@@ -158,7 +158,10 @@ const validationPin = async (req, res) => {
     }
     const result = await authModels.checkPinModel(id);
     if (result) {
-      const validPin = await bcrypt.compare(value.pin, result[0].pin);
+      const validPin = await bcrypt.compare(
+        value.pin.toString(),
+        result[0].pin
+      );
       if (!validPin) {
         return responseStandard(res, "Wrong Pin!!!", {}, 400, false);
       } else {
@@ -177,7 +180,7 @@ const createPinUser = async (req, res) => {
     const { id } = req.user;
     const schema = joi.object({
       pin: joi.number().integer().min(6).required().messages({
-        "number.base": `Pin is not a number or could not be cast to a number`,
+        "number.base": `Pin is not a format number or integer`,
         "number.empty": `Pin cannot be an empty field`,
         "number.min": `Pin should have a minimum length of {#limit}`,
         "any.required": `Pin is a required field`,
@@ -194,7 +197,7 @@ const createPinUser = async (req, res) => {
       );
     }
     const salt = await bcrypt.genSalt(10);
-    const enkripPin = await bcrypt.hash(value.pin, salt);
+    const enkripPin = await bcrypt.hash(value.pin.toString(), salt);
     await authModels.createPin([enkripPin, id]);
     return responseStandard(res, "Success create pin!", {}, 200, true);
   } catch (error) {
