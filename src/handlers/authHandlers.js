@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const joi = require("joi");
 const bcrypt = require("bcrypt");
 const generateOTP = require("../helpers/generatorOTP");
 const { transporterMail } = require("../helpers/transporterEmail");
@@ -7,29 +8,66 @@ const authModels = require("../models/authModels");
 
 const registerAccount = async (req, res) => {
   try {
-    const { username, email, phone, password } = req.body;
-    if (!username || !email || !phone || !password) {
-      return responseStandard(res, "Fields can not be empty", {}, 400, false);
-    }
-    if (password.length < 8) {
+    const schema = joi.object({
+      username: joi
+        .string()
+        .max(30)
+        .min(4)
+        .pattern(/^[a-z ,.'-]+$/i)
+        .required()
+        .messages({
+          "string.base": `Username should be a type of 'text'`,
+          "string.empty": `Username cannot be an empty field`,
+          "string.max": `Username should have a max length of {#limit}`,
+          "string.min": `Username should have a minimum length of {#limit}`,
+          "any.required": `Username is a required field`,
+          "string.pattern.base": `Username cannot contain number`,
+        }),
+      email: joi.string().email({ minDomainSegments: 2 }).required().messages({
+        "string.email": `Wrong Email format`,
+        "string.empty": `Email cannot be an empty field`,
+        "any.required": `Email is a required field`,
+      }),
+      phone: joi.number().integer().min(10).required().messages({
+        "number.base": `Phone number is not a number or could not be cast to a number`,
+        "number.empty": `Phone number cannot be an empty field`,
+        "number.min": `Phone number should have a minimum length of {#limit}`,
+        "any.required": `Phone is a required field`,
+      }),
+      password: joi
+        .string()
+        .required()
+        .min(8)
+        .pattern(
+          /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
+        )
+        .messages({
+          "string.empty": `Password cannot be an empty field`,
+          "string.min": `Password should have a minimum length of {#limit}`,
+          "any.required": `Password is a required field`,
+          "string.pattern.base": `Password must contain letter, number and special character`,
+        }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
       return responseStandard(
         res,
-        "Password must be longer than 8 characters",
-        {},
+        "Error!!",
+        { error: error.message },
         400,
         false
       );
     }
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const emailExist = await authModels.checkEmailModel(email);
+    const hashedPassword = await bcrypt.hash(value.password, salt);
+    const emailExist = await authModels.checkEmailModel(value.email);
     if (emailExist.length) {
       return responseStandard(res, "Email already exists", {}, 400, false);
     }
     const users = {
-      username: username,
-      email: email,
-      phone: phone,
+      username: value.username,
+      email: value.email,
+      phone: value.phone,
       password: hashedPassword,
     };
     await authModels.createAcount(users);
