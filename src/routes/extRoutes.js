@@ -11,6 +11,6 @@ const {
 Router.post("/subs", errorMulterHandler(uploadAvatarImage.single("image")), authentication, createProduct);
 Router.get("/subs", authentication, getProduct);
 
-Router.get("/find", authentication, findUser);
+Router.post("/find", authentication, findUser);
 
 module.exports = Router;
