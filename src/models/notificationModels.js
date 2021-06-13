@@ -17,7 +17,7 @@ const postNotification = (id, content) => {
   });
 };
 const getNotification = (id) => {
-  const qs = "SELECT * FROM notifications WHERE user_id = ?";
+  const qs = "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC";
   return new Promise((resolve, reject) => {
     db.query(qs, id, (error, result) => {
       if (error) {

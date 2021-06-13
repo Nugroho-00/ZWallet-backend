@@ -4,7 +4,8 @@ const notificationModels = require("../models/notificationModels");
 const postNotification = async (req, res) => {
   try {
     const { id } = req.user;
-    const result = await notificationModels.postNotification(id);
+    const { content } = req.body;
+    const result = await notificationModels.postNotification(id, content);
     if (result) {
       console.log(result);
       return responseStandard(

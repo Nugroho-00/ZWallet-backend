@@ -5,6 +5,11 @@ const logger = require("morgan");
 const app = express();
 const jsonParser = express.json();
 
+const http = require("http");
+const socketIO = require("socket.io");
+
+const server = http.createServer(app);
+
 // use express app
 app.use(express.urlencoded({ extended: false }));
 app.use(jsonParser);
@@ -12,8 +17,12 @@ app.use(logger("dev"));
 app.use(cors());
 app.use(express.static("public"));
 
-// // import middlewares
-// const { authentication } = require("./src/middlewares/authentication");
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    method: ["GET", "POST", "PATCH", "DELETE"]
+  }
+});
 
 // import route
 const authRoute = require("./src/routes/authRoutes");
@@ -31,7 +40,11 @@ app.use("/transaction", transactionRoute);
 app.use("/ext", extRoute);
 app.use("/notification", notificationRoute);
 
-app.listen(process.env.PORT, () => {
+io.on("connection", (socket) => {
+  console.log(`${socket.id} has joined`);
+});
+
+server.listen(process.env.PORT, () => {
   console.log("Server running at port", process.env.PORT);
 });
 
