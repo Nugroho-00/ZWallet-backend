@@ -68,6 +68,7 @@ const findUser = async (req, res) => {
       }
     }
   } catch (error) {
+    // console.log(error);
     return responseStandard(res, error.message, {}, 500, false);
   }
 };

@@ -94,7 +94,7 @@ const getMyContact = (id, search, sort, pages) => {
     if (!search && !order) {
       qs = qs + " ORDER BY u.username ASC";
     } else if (search && !order) {
-      qs = qs + " AND u.username LIKE '%" + search + "%' ";
+      qs = qs + " AND u.username LIKE '%" + search + "%' " + " ORDER BY u.username ASC";
     } else if (!search && order) {
       qs = qs + order;
     } else if (search && order) {
@@ -128,7 +128,7 @@ const getMyContact = (id, search, sort, pages) => {
               result,
               count,
               page,
-              limit,
+              limit
             };
             resolve(finalResult);
           }
@@ -143,5 +143,5 @@ module.exports = {
   getUsersId,
   changePinModel,
   changePassword,
-  getMyContact,
+  getMyContact
 };
