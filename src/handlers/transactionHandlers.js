@@ -33,7 +33,7 @@ const topUp = async (req, res) => {
       return responseStandard(
         res,
         "Balance added successfully!",
-        {},
+        { result: { id: result.insertId, amount: amount } },
         200,
         true
       );
@@ -80,7 +80,7 @@ const transfer = async (req, res) => {
         return responseStandard(
           res,
           "Transfer was successful. The balance will be sent to the destination user!",
-          {},
+          { result: { id: result.insertId, amount: amount, note: note } },
           200,
           true
         );

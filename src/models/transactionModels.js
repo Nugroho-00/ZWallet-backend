@@ -201,7 +201,7 @@ const transfer = (sender, phone, amount, note) => {
 };
 
 const history = (id, type, start, end, sort, pages) => {
-  let qs = "SELECT s.username as 'sender', IF(t.type='subscription', p.name, r.username) as receiver, IF(t.type='credit', r.avatar, IF(t.type='subscription',p.avatar, s.avatar)) as image, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id LEFT JOIN products p ON t.receiver_id = p.id WHERE t.executor_id=?";
+  let qs = "SELECT t.id as transaction_id, s.username as 'sender', IF(t.type='subscription', p.name, r.username) as receiver, IF(t.type='credit', r.avatar, IF(t.type='subscription',p.avatar, s.avatar)) as image, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id LEFT JOIN products p ON t.receiver_id = p.id WHERE t.executor_id=?";
 
   // const qs2 = " GROUP BY transaction_id ";
 
