@@ -66,10 +66,10 @@ const getToken = (token) => {
   });
 };
 
-const createPin = (data) => {
+const createPin = (pin, id) => {
   return new Promise((resolve, reject) => {
     const queryString = "UPDATE users SET pin = ? WHERE id = ?";
-    db.query(queryString, data, (err, result) => {
+    db.query(queryString, [pin, id], (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -146,5 +146,5 @@ module.exports = {
   resetPasswordModel,
   sendOTPModel,
   verifyOTPModel,
-  logoutModel,
+  logoutModel
 };

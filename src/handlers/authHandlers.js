@@ -16,23 +16,23 @@ const registerAccount = async (req, res) => {
         .pattern(/^[a-z ,.'-]+$/i)
         .required()
         .messages({
-          "string.base": `Username should be a type of 'text'`,
-          "string.empty": `Username cannot be an empty field`,
-          "string.max": `Username should have a max length of {#limit}`,
-          "string.min": `Username should have a minimum length of {#limit}`,
-          "any.required": `Username is a required field`,
-          "string.pattern.base": `Username cannot contain number`,
+          "string.base": "Username should be a type of 'text'",
+          "string.empty": "Username cannot be an empty field",
+          "string.max": "Username should have a max length of {#limit}",
+          "string.min": "Username should have a minimum length of {#limit}",
+          "any.required": "Username is a required field",
+          "string.pattern.base": "Username cannot contain number"
         }),
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
-        "string.email": `Wrong Email format`,
-        "string.empty": `Email cannot be an empty field`,
-        "any.required": `Email is a required field`,
+        "string.email": "Wrong Email format",
+        "string.empty": "Email cannot be an empty field",
+        "any.required": "Email is a required field"
       }),
       phone: joi.number().integer().min(10).required().messages({
-        "number.base": `Phone number is not a number or could not be cast to a number`,
-        "number.empty": `Phone number cannot be an empty field`,
-        "number.min": `Phone number should have a minimum length of {#limit}`,
-        "any.required": `Phone is a required field`,
+        "number.base": "Phone number is not a number or could not be cast to a number",
+        "number.empty": "Phone number cannot be an empty field",
+        "number.min": "Phone number should have a minimum length of {#limit}",
+        "any.required": "Phone is a required field"
       }),
       password: joi
         .string()
@@ -42,11 +42,11 @@ const registerAccount = async (req, res) => {
           /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
         )
         .messages({
-          "string.empty": `Password cannot be an empty field`,
-          "string.min": `Password should have a minimum length of {#limit}`,
-          "any.required": `Password is a required field`,
-          "string.pattern.base": `Password must contain letter, number and special character`,
-        }),
+          "string.empty": "Password cannot be an empty field",
+          "string.min": "Password should have a minimum length of {#limit}",
+          "any.required": "Password is a required field",
+          "string.pattern.base": "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -68,7 +68,7 @@ const registerAccount = async (req, res) => {
       username: value.username,
       email: value.email,
       phone: value.phone,
-      password: hashedPassword,
+      password: hashedPassword
     };
     await authModels.createAcount(users);
     return responseStandard(res, "User succes registered!", {}, 200, true);
@@ -81,9 +81,9 @@ const loginAccount = async (req, res) => {
   try {
     const schema = joi.object({
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
-        "string.email": `Wrong Email format`,
-        "string.empty": `Email cannot be an empty field`,
-        "any.required": `Email is a required field`,
+        "string.email": "Wrong Email format",
+        "string.empty": "Email cannot be an empty field",
+        "any.required": "Email is a required field"
       }),
       password: joi
         .string()
@@ -93,11 +93,11 @@ const loginAccount = async (req, res) => {
           /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
         )
         .messages({
-          "string.empty": `Password cannot be an empty field`,
-          "string.min": `Password should have a minimum length of {#limit}`,
-          "any.required": `Password is a required field`,
-          "string.pattern.base": `Password must contain letter, number and special character`,
-        }),
+          "string.empty": "Password cannot be an empty field",
+          "string.min": "Password should have a minimum length of {#limit}",
+          "any.required": "Password is a required field",
+          "string.pattern.base": "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -122,7 +122,7 @@ const loginAccount = async (req, res) => {
         const payload = { id, username };
         const options = {
           expiresIn: process.env.EXPIRE,
-          issuer: process.env.ISSUER,
+          issuer: process.env.ISSUER
         };
         const token = jwt.sign(payload, process.env.SECRET_KEY, options);
         return responseStandard(res, "Login Succesfully", { token }, 200, true);
@@ -140,11 +140,11 @@ const validationPin = async (req, res) => {
     const { id } = req.user;
     const schema = joi.object({
       pin: joi.number().integer().min(6).required().messages({
-        "number.base": `Pin is not a number or could not be cast to a number`,
-        "number.empty": `Pin cannot be an empty field`,
-        "number.min": `Pin should have a minimum length of {#limit}`,
-        "any.required": `Pin is a required field`,
-      }),
+        "number.base": "Pin is not a number or could not be cast to a number",
+        "number.empty": "Pin cannot be an empty field",
+        "number.min": "Pin should have a minimum length of {#limit}",
+        "any.required": "Pin is a required field"
+      })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -174,14 +174,14 @@ const validationPin = async (req, res) => {
 
 const createPinUser = async (req, res) => {
   try {
-    const { id } = req.user;
     const schema = joi.object({
       pin: joi.number().integer().min(6).required().messages({
-        "number.base": `Pin is not a number or could not be cast to a number`,
-        "number.empty": `Pin cannot be an empty field`,
-        "number.min": `Pin should have a minimum length of {#limit}`,
-        "any.required": `Pin is a required field`,
+        "number.base": "Pin is not a number or could not be cast to a number",
+        "number.empty": "Pin cannot be an empty field",
+        "number.min": "Pin should have a minimum length of {#limit}",
+        "any.required": "Pin is a required field"
       }),
+      id: joi.number().integer()
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -193,9 +193,10 @@ const createPinUser = async (req, res) => {
         false
       );
     }
+    // console.log(value.pin, "em", value.email);
     const salt = await bcrypt.genSalt(10);
-    const enkripPin = await bcrypt.hash(value.pin, salt);
-    await authModels.createPin([enkripPin, id]);
+    const enkripPin = await bcrypt.hash(value.pin.toString(), salt);
+    await authModels.createPin(enkripPin, value.id);
     return responseStandard(res, "Success create pin!", {}, 200, true);
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
@@ -206,10 +207,10 @@ const postOTP = async (req, res) => {
   try {
     const schema = joi.object({
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
-        "string.email": `Wrong Email format`,
-        "string.empty": `Email cannot be an empty field`,
-        "any.required": `Email is a required field`,
-      }),
+        "string.email": "Wrong Email format",
+        "string.empty": "Email cannot be an empty field",
+        "any.required": "Email is a required field"
+      })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -232,15 +233,15 @@ const postOTP = async (req, res) => {
         200,
         true
       );
-      var mailOptions = {
+      const mailOptions = {
         to: value.email,
-        subject: "Reset Password OTP",
+        subject: "ZWallet Authentication",
         html:
-          "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
+          "<h2>To authenticate, please use the following One Time Password (OTP)</h2>" +
           "<h1 style='font-weight:bold;'>" +
           otp +
           "</h1>" +
-          "<p style='font-style:italic;'>expired in 5 minutes</p>",
+          "<p style='font-style:italic;'>expired in 5 minutes. Do not share this OTP with anyone. We take your account security very seriously.</p>"
       };
       transporterMail.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -269,10 +270,10 @@ const verifyOTP = async (req, res) => {
     if (result.length) {
       const options = {
         expiresIn: process.env.EXPIRE,
-        issuer: process.env.ISSUER,
+        issuer: process.env.ISSUER
       };
       const payload = {
-        id: userId,
+        id: userId
       };
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
       responseStandard(res, "Success verify OTP!", { token }, 200, true);
@@ -302,11 +303,11 @@ const resetPassword = async (req, res) => {
           /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
         )
         .messages({
-          "string.empty": `Password cannot be an empty field`,
-          "string.min": `Password should have a minimum length of {#limit}`,
-          "any.required": `Password is a required field`,
-          "string.pattern.base": `Password must contain letter, number and special character`,
-        }),
+          "string.empty": "Password cannot be an empty field",
+          "string.min": "Password should have a minimum length of {#limit}",
+          "any.required": "Password is a required field",
+          "string.pattern.base": "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -349,5 +350,5 @@ module.exports = {
   resetPassword,
   postOTP,
   verifyOTP,
-  validationPin,
+  validationPin
 };

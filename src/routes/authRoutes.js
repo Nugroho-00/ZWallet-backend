@@ -7,14 +7,14 @@ const {
   verifyOTP,
   resetPassword,
   logoutToken,
-  validationPin,
+  validationPin
 } = require("../handlers/authHandlers");
 const { authentication } = require("../middlewares/authentication");
 
 Router.post("/register", registerAccount);
 Router.post("/login", loginAccount);
 Router.post("/validation-pin", authentication, validationPin);
-Router.post("/create-pin", authentication, createPinUser);
+Router.patch("/create-pin", createPinUser);
 Router.post("/logout", logoutToken);
 
 // reset password
