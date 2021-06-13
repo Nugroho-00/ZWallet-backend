@@ -293,6 +293,19 @@ const history = (id, type, start, end, sort, pages) => {
   });
 };
 
+const detail = (id) => {
+  const qs = "SELECT t.id as transaction_id, s.username as 'sender', IF(t.type='subscription', p.name, r.username) as receiver, IF(t.type='credit', r.avatar, IF(t.type='subscription',p.avatar, s.avatar)) as image, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id LEFT JOIN products p ON t.receiver_id = p.id WHERE t.id= ?";
+  return new Promise((resolve, reject) => {
+    db.query(qs, id, (error, result) => {
+      if (error) {
+        return reject(error);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
 const subscribe = (id, productId) => {
   // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
@@ -373,5 +386,6 @@ module.exports = {
   topUp,
   transfer,
   history,
+  detail,
   subscribe
 };

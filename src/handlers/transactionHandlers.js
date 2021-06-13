@@ -147,6 +147,18 @@ const history = async (req, res) => {
   }
 };
 
+const detail = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await transactionModels.detail(id);
+    return responseStandard(res, null, { result }, 200, true);
+  } catch (error) {
+    console.log(error);
+    return responseStandard(res, error.message, {}, 500, false);
+  }
+};
+
 const subscribe = async (req, res) => {
   try {
     const { id } = req.user;
@@ -186,4 +198,4 @@ const subscribe = async (req, res) => {
   }
 };
 
-module.exports = { topUp, transfer, history, subscribe };
+module.exports = { topUp, transfer, history, detail, subscribe };
