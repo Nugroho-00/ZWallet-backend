@@ -79,13 +79,42 @@ const registerAccount = async (req, res) => {
 
 const loginAccount = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return responseStandard(res, "Fields can not be empty", {}, 400, false);
+    const schema = joi.object({
+      email: joi.string().email({ minDomainSegments: 2 }).required().messages({
+        "string.email": `Wrong Email format`,
+        "string.empty": `Email cannot be an empty field`,
+        "any.required": `Email is a required field`,
+      }),
+      password: joi
+        .string()
+        .required()
+        .min(8)
+        .pattern(
+          /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
+        )
+        .messages({
+          "string.empty": `Password cannot be an empty field`,
+          "string.min": `Password should have a minimum length of {#limit}`,
+          "any.required": `Password is a required field`,
+          "string.pattern.base": `Password must contain letter, number and special character`,
+        }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
+      return responseStandard(
+        res,
+        "Error!!",
+        { error: error.message },
+        400,
+        false
+      );
     }
-    const result = await authModels.getUsersEmail(email);
+    const result = await authModels.getUsersEmail(value.email);
     if (result.length) {
-      const validPass = await bcrypt.compare(password, result[0].password);
+      const validPass = await bcrypt.compare(
+        value.password,
+        result[0].password
+      );
       if (!validPass) {
         return responseStandard(res, "Wrong Password!!!", {}, 400, false);
       } else {
@@ -99,7 +128,7 @@ const loginAccount = async (req, res) => {
         return responseStandard(res, "Login Succesfully", { token }, 200, true);
       }
     } else {
-      return responseStandard(res, "Wrong email!!!", {}, 400, false);
+      return responseStandard(res, "Email not found!!!", {}, 400, false);
     }
   } catch (error) {
     return responseStandard(res, error.message, {}, 400, false);
@@ -109,13 +138,27 @@ const loginAccount = async (req, res) => {
 const validationPin = async (req, res) => {
   try {
     const { id } = req.user;
-    const { pin } = req.body;
-    if (!pin) {
-      return responseStandard(res, "Fields can not be empty", {}, 400, false);
+    const schema = joi.object({
+      pin: joi.number().integer().min(6).required().messages({
+        "number.base": `Pin is not a number or could not be cast to a number`,
+        "number.empty": `Pin cannot be an empty field`,
+        "number.min": `Pin should have a minimum length of {#limit}`,
+        "any.required": `Pin is a required field`,
+      }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
+      return responseStandard(
+        res,
+        "Error!!",
+        { error: error.message },
+        400,
+        false
+      );
     }
     const result = await authModels.checkPinModel(id);
     if (result) {
-      const validPin = await bcrypt.compare(pin, result[0].pin);
+      const validPin = await bcrypt.compare(value.pin, result[0].pin);
       if (!validPin) {
         return responseStandard(res, "Wrong Pin!!!", {}, 400, false);
       } else {
@@ -132,14 +175,26 @@ const validationPin = async (req, res) => {
 const createPinUser = async (req, res) => {
   try {
     const { id } = req.user;
-    const { pin } = req.body;
-    if (!pin) {
-      return responseStandard(res, "Pin cannot be empty");
-    } else if (pin.length < 6) {
-      return responseStandard(res, "Pin must be 6 characters!");
+    const schema = joi.object({
+      pin: joi.number().integer().min(6).required().messages({
+        "number.base": `Pin is not a number or could not be cast to a number`,
+        "number.empty": `Pin cannot be an empty field`,
+        "number.min": `Pin should have a minimum length of {#limit}`,
+        "any.required": `Pin is a required field`,
+      }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
+      return responseStandard(
+        res,
+        "Error!!",
+        { error: error.message },
+        400,
+        false
+      );
     }
     const salt = await bcrypt.genSalt(10);
-    const enkripPin = await bcrypt.hash(pin, salt);
+    const enkripPin = await bcrypt.hash(value.pin, salt);
     await authModels.createPin([enkripPin, id]);
     return responseStandard(res, "Success create pin!", {}, 200, true);
   } catch (error) {
@@ -149,11 +204,24 @@ const createPinUser = async (req, res) => {
 
 const postOTP = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return responseStandard(res, "Field cannot be empty !!", {}, 400, false);
+    const schema = joi.object({
+      email: joi.string().email({ minDomainSegments: 2 }).required().messages({
+        "string.email": `Wrong Email format`,
+        "string.empty": `Email cannot be an empty field`,
+        "any.required": `Email is a required field`,
+      }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
+      return responseStandard(
+        res,
+        "Error!!",
+        { error: error.message },
+        400,
+        false
+      );
     }
-    const result = await authModels.checkEmailModel(email);
+    const result = await authModels.checkEmailModel(value.email);
     if (result.length) {
       const otp = generateOTP.generateOTP();
       await authModels.sendOTPModel([otp, result[0].id]);
@@ -165,7 +233,7 @@ const postOTP = async (req, res) => {
         true
       );
       var mailOptions = {
-        to: email,
+        to: value.email,
         subject: "Reset Password OTP",
         html:
           "<h2>Silahkan masukan kode OTP untuk melakukan reset password</h2>" +
@@ -225,21 +293,33 @@ const verifyOTP = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { id } = req.user;
-    const { newPassword } = req.body;
-    if (!newPassword) {
-      return responseStandard(res, "Field cannot be empty!", {}, 400, false);
-    }
-    if (newPassword.length < 8) {
+    const schema = joi.object({
+      newPassword: joi
+        .string()
+        .required()
+        .min(8)
+        .pattern(
+          /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%^*#?&])[A-Za-z\d@$!%^*#?&]{8,}$/
+        )
+        .messages({
+          "string.empty": `Password cannot be an empty field`,
+          "string.min": `Password should have a minimum length of {#limit}`,
+          "any.required": `Password is a required field`,
+          "string.pattern.base": `Password must contain letter, number and special character`,
+        }),
+    });
+    const { value, error } = schema.validate(req.body);
+    if (error) {
       return responseStandard(
         res,
-        "Password must be 8 Character!",
-        {},
+        "Error!!",
+        { error: error.message },
         400,
         false
       );
     }
     const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(newPassword, salt);
+    const hashPassword = await bcrypt.hash(value.newPassword, salt);
     await authModels.resetPasswordModel([hashPassword, id]);
     responseStandard(res, "Success to reset password!", {}, 200, true);
   } catch (error) {
