@@ -158,7 +158,10 @@ const validationPin = async (req, res) => {
     }
     const result = await authModels.checkPinModel(id);
     if (result) {
-      const validPin = await bcrypt.compare(value.pin, result[0].pin);
+      const validPin = await bcrypt.compare(
+        value.pin.toString(),
+        result[0].pin
+      );
       if (!validPin) {
         return responseStandard(res, "Wrong Pin!!!", {}, 400, false);
       } else {
