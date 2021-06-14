@@ -3,81 +3,91 @@ const db = require("../database/dbMysql");
 
 const topUp = (virtual_account, amount) => {
   // // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  // return new Promise((resolve, reject) => {
-  //   const getPrevBalance =
-  //     "SELECT balance_nominal FROM balances WHERE user_id = ?";
-  //   db.query(getPrevBalance, id, (error, result) => {
-  //     if (error) {
-  //       console.log(error);
-  //       return reject(error);
-  //     } else {
-  //       console.log(result.length);
-  //       const isExist = result.length > 0;
-  //       const newBalance = isExist
-  //         ? result[0].balance_nominal + Number(amount)
-  //         : Number(amount);
+  return new Promise((resolve, reject) => {
+    const findId = "SELECT id FROM users WHERE virtual_account = ?";
+    db.query(findId, virtual_account, (error, result) => {
+      if (error) {
+        return reject(error);
+      } else if (result.length === 0) {
+        resolve({ conflict: "User not found" });
+      } else {
+        const id = result[0].id;
+        const getPrevBalance =
+        "SELECT balance_nominal FROM balances WHERE user_id = ?";
+        db.query(getPrevBalance, id, (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(error);
+          } else {
+            console.log(result.length);
+            const isExist = result.length > 0;
+            const newBalance = isExist
+              ? result[0].balance_nominal + Number(amount)
+              : Number(amount);
 
-  //       if (isExist) {
-  //         const data = {
-  //           balance_nominal: newBalance
-  //         };
-  //         const queryString = "UPDATE balances SET ? WHERE user_id = ?";
-  //         db.query(queryString, [data, id], (error, result) => {
-  //           if (error) {
-  //             return reject(error);
-  //           } else {
-  //             console.log("Are u here?");
-  //             const historyData = {
-  //               sender_id: id,
-  //               receiver_id: id,
-  //               nominal: amount,
-  //               type: "topup",
-  //               executor_id: id
-  //             };
-  //             const addHistory = "INSERT INTO transactions SET ?";
-  //             db.query(addHistory, historyData, (error, result) => {
-  //               if (error) {
-  //                 return reject(error);
-  //               } else {
-  //                 return resolve(result);
-  //               }
-  //             });
-  //           }
-  //         });
-  //       } else {
-  //         const data = {
-  //           user_id: id,
-  //           balance_nominal: newBalance
-  //         };
-  //         const queryString = "INSERT INTO balances SET ?";
-  //         db.query(queryString, [data], (error, result) => {
-  //           console.log("Are u here2?");
+            if (isExist) {
+              const data = {
+                balance_nominal: newBalance
+              };
+              const queryString = "UPDATE balances SET ? WHERE user_id = ?";
+              db.query(queryString, [data, id], (error, result) => {
+                if (error) {
+                  return reject(error);
+                } else {
+                  console.log("Are u here?");
+                  const historyData = {
+                    sender_id: id,
+                    receiver_id: id,
+                    nominal: amount,
+                    type: "topup",
+                    executor_id: id
+                  };
+                  const addHistory = "INSERT INTO transactions SET ?";
+                  db.query(addHistory, historyData, (error, result) => {
+                    if (error) {
+                      return reject(error);
+                    } else {
+                      return resolve(result);
+                    }
+                  });
+                }
+              });
+            } else {
+              const data = {
+                user_id: id,
+                balance_nominal: newBalance
+              };
+              const queryString = "INSERT INTO balances SET ?";
+              db.query(queryString, [data], (error, result) => {
+                console.log("Are u here2?");
 
-  //           if (error) {
-  //             return reject(error);
-  //           } else {
-  //             const historyData = {
-  //               sender_id: id,
-  //               receiver_id: id,
-  //               nominal: amount,
-  //               type: "topup",
-  //               executor_id: id
+                if (error) {
+                  return reject(error);
+                } else {
+                  const historyData = {
+                    sender_id: id,
+                    receiver_id: id,
+                    nominal: amount,
+                    type: "topup",
+                    executor_id: id
 
-  //             };
-  //             const addHistory = "INSERT INTO transactions SET ?";
-  //             db.query(addHistory, historyData, (error, result) => {
-  //               if (error) {
-  //                 return reject(error);
-  //               } else {
-  //                 return resolve(result);
-  //               }
-  //             });
-  //           }
-  //         });
-  //       }
-  //     }
-  //   });
-  // });
+                  };
+                  const addHistory = "INSERT INTO transactions SET ?";
+                  db.query(addHistory, historyData, (error, result) => {
+                    if (error) {
+                      return reject(error);
+                    } else {
+                      return resolve(result);
+                    }
+                  });
+                }
+              });
+            }
+          }
+        });
+      }
+    });
+  });
 };
 
 const transfer = (sender, phone, amount, note) => {
