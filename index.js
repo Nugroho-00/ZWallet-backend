@@ -21,8 +21,8 @@ app.use(express.static("public"));
 const io = socketIO(server, {
   cors: {
     origin: "*",
-    method: ["GET", "POST", "PATCH", "DELETE"]
-  }
+    method: ["GET", "POST", "PATCH", "DELETE"],
+  },
 });
 
 // import route
@@ -68,6 +68,6 @@ server.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.json({
     succes: true,
-    message: "Backend is Running Now!!!"
+    message: "Backend is Running Now!!!",
   });
 });
