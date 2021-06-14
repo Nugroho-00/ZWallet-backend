@@ -27,7 +27,9 @@ const topUp = async (req, res) => {
       );
     }
     const result = await transactionModels.topUp(virtual_account, amount);
-    if (result) {
+    if (result.conflict) {
+      return responseStandard(res, result.conflict, {}, 400, false);
+    } else if (result) {
       console.log(result);
       return responseStandard(
         res,
@@ -74,7 +76,7 @@ const transfer = async (req, res) => {
     if (result) {
       console.log(result);
       if (result.conflict) {
-        return responseStandard(res, result.conflict, {}, 200, false);
+        return responseStandard(res, result.conflict, {}, 400, false);
       } else {
         return responseStandard(
           res,
@@ -246,7 +248,7 @@ const subscribe = async (req, res) => {
     if (result) {
       console.log(result);
       if (result.conflict) {
-        return responseStandard(res, result.conflict, {}, 200, false);
+        return responseStandard(res, result.conflict, {}, 400, false);
       } else {
         return responseStandard(
           res,
