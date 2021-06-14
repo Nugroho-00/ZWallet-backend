@@ -7,7 +7,7 @@ const createProduct = async (req, res) => {
     console.log(req.body);
     if (req.file) {
       const { file } = req;
-      const url = `/images/products/${file.filename}`;
+      const url = `/images/users/${file.filename}`;
       const avatar = url;
       dataProduct = { ...dataProduct, avatar };
     }
