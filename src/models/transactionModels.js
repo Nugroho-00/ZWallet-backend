@@ -1,83 +1,83 @@
 /* eslint-disable camelcase */
 const db = require("../database/dbMysql");
 
-const topUp = (id, amount) => {
-  // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  return new Promise((resolve, reject) => {
-    const getPrevBalance =
-      "SELECT balance_nominal FROM balances WHERE user_id = ?";
-    db.query(getPrevBalance, id, (error, result) => {
-      if (error) {
-        console.log(error);
-        return reject(error);
-      } else {
-        console.log(result.length);
-        const isExist = result.length > 0;
-        const newBalance = isExist
-          ? result[0].balance_nominal + Number(amount)
-          : Number(amount);
+const topUp = (virtual_account, amount) => {
+  // // const transaction_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // return new Promise((resolve, reject) => {
+  //   const getPrevBalance =
+  //     "SELECT balance_nominal FROM balances WHERE user_id = ?";
+  //   db.query(getPrevBalance, id, (error, result) => {
+  //     if (error) {
+  //       console.log(error);
+  //       return reject(error);
+  //     } else {
+  //       console.log(result.length);
+  //       const isExist = result.length > 0;
+  //       const newBalance = isExist
+  //         ? result[0].balance_nominal + Number(amount)
+  //         : Number(amount);
 
-        if (isExist) {
-          const data = {
-            balance_nominal: newBalance
-          };
-          const queryString = "UPDATE balances SET ? WHERE user_id = ?";
-          db.query(queryString, [data, id], (error, result) => {
-            if (error) {
-              return reject(error);
-            } else {
-              console.log("Are u here?");
-              const historyData = {
-                sender_id: id,
-                receiver_id: id,
-                nominal: amount,
-                type: "topup",
-                executor_id: id
-              };
-              const addHistory = "INSERT INTO transactions SET ?";
-              db.query(addHistory, historyData, (error, result) => {
-                if (error) {
-                  return reject(error);
-                } else {
-                  return resolve(result);
-                }
-              });
-            }
-          });
-        } else {
-          const data = {
-            user_id: id,
-            balance_nominal: newBalance
-          };
-          const queryString = "INSERT INTO balances SET ?";
-          db.query(queryString, [data], (error, result) => {
-            console.log("Are u here2?");
+  //       if (isExist) {
+  //         const data = {
+  //           balance_nominal: newBalance
+  //         };
+  //         const queryString = "UPDATE balances SET ? WHERE user_id = ?";
+  //         db.query(queryString, [data, id], (error, result) => {
+  //           if (error) {
+  //             return reject(error);
+  //           } else {
+  //             console.log("Are u here?");
+  //             const historyData = {
+  //               sender_id: id,
+  //               receiver_id: id,
+  //               nominal: amount,
+  //               type: "topup",
+  //               executor_id: id
+  //             };
+  //             const addHistory = "INSERT INTO transactions SET ?";
+  //             db.query(addHistory, historyData, (error, result) => {
+  //               if (error) {
+  //                 return reject(error);
+  //               } else {
+  //                 return resolve(result);
+  //               }
+  //             });
+  //           }
+  //         });
+  //       } else {
+  //         const data = {
+  //           user_id: id,
+  //           balance_nominal: newBalance
+  //         };
+  //         const queryString = "INSERT INTO balances SET ?";
+  //         db.query(queryString, [data], (error, result) => {
+  //           console.log("Are u here2?");
 
-            if (error) {
-              return reject(error);
-            } else {
-              const historyData = {
-                sender_id: id,
-                receiver_id: id,
-                nominal: amount,
-                type: "topup",
-                executor_id: id
+  //           if (error) {
+  //             return reject(error);
+  //           } else {
+  //             const historyData = {
+  //               sender_id: id,
+  //               receiver_id: id,
+  //               nominal: amount,
+  //               type: "topup",
+  //               executor_id: id
 
-              };
-              const addHistory = "INSERT INTO transactions SET ?";
-              db.query(addHistory, historyData, (error, result) => {
-                if (error) {
-                  return reject(error);
-                } else {
-                  return resolve(result);
-                }
-              });
-            }
-          });
-        }
-      }
-    });
-  });
+  //             };
+  //             const addHistory = "INSERT INTO transactions SET ?";
+  //             db.query(addHistory, historyData, (error, result) => {
+  //               if (error) {
+  //                 return reject(error);
+  //               } else {
+  //                 return resolve(result);
+  //               }
+  //             });
+  //           }
+  //         });
+  //       }
+  //     }
+  //   });
+  // });
 };
 
 const transfer = (sender, phone, amount, note) => {
@@ -200,7 +200,7 @@ const transfer = (sender, phone, amount, note) => {
   });
 };
 
-const history = (id, type, start, end, sort, pages) => {
+const history = (id, type, start, end, sort, pages, limits) => {
   let qs = "SELECT t.id as transaction_id, s.username as 'sender', IF(t.type='subscription', p.name, r.username) as receiver, IF(t.type='credit', r.avatar, IF(t.type='subscription',p.avatar, s.avatar)) as image, t.nominal, t.type, t.note, t.created_at FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id LEFT JOIN products p ON t.receiver_id = p.id WHERE t.executor_id=?";
 
   // const qs2 = " GROUP BY transaction_id ";
@@ -264,7 +264,7 @@ const history = (id, type, start, end, sort, pages) => {
 
   const fullQuery = qs + paginate;
 
-  const limit = 5;
+  const limit = Number(limits) || 5;
   const page = Number(pages) || 1;
   const offset = (page - 1) * limit;
 

@@ -7,10 +7,9 @@ const transactionModels = require("../models/transactionModels");
 
 const topUp = async (req, res) => {
   try {
-    const { id } = req.user;
-    const { amount } = req.body;
+    const { virtual_account, amount } = req.body;
 
-    if (!amount) {
+    if (!amount || !virtual_account) {
       return responseStandard(
         res,
         "This field can not be empty",
@@ -27,7 +26,7 @@ const topUp = async (req, res) => {
         false
       );
     }
-    const result = await transactionModels.topUp(id, amount);
+    const result = await transactionModels.topUp(virtual_account, amount);
     if (result) {
       console.log(result);
       return responseStandard(
@@ -80,7 +79,13 @@ const transfer = async (req, res) => {
         return responseStandard(
           res,
           "Transfer was successful. The balance will be sent to the destination user!",
-          { result: { id: result.insertId, amount: amount, note: note } },
+          {
+            result: {
+              id: result.insertId,
+              amount: amount,
+              note: note
+            }
+          },
           200,
           true
         );
@@ -96,14 +101,28 @@ const history = async (req, res) => {
   const { baseUrl, path, hostname, protocol } = req;
   try {
     const { id } = req.user;
-    const { type, start, end, sort, pages } = req.query;
+    const { type, start, end, sort, pages, limits } = req.query;
 
-    const finalResult = await transactionModels.history(id, type, start, end, sort, pages);
+    const finalResult = await transactionModels.history(
+      id,
+      type,
+      start,
+      end,
+      sort,
+      pages,
+      limits
+    );
     const { result, count, page, limit } = finalResult;
     const totalPage = Math.ceil(count / limit) || 1;
 
     const url =
-      protocol + "://" + hostname + ":" + process.env.PORT + baseUrl + path;
+            protocol +
+            "://" +
+            hostname +
+            ":" +
+            process.env.PORT +
+            baseUrl +
+            path;
 
     // const prev = page === 1 ? null : url + `?pages=${page - 1}`;
     // const next = page === totalPage ? null : url + `?pages=${page + 1}`;
@@ -115,22 +134,70 @@ const history = async (req, res) => {
       next = page === totalPage ? null : url + `?pages=${page + 1}`;
     } else if (type && !start && !end && !sort) {
       prev = page === 1 ? null : url + `?type=${type}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?type=${type}&pages=${page + 1}`;
+      next =
+                page === totalPage
+                  ? null
+                  : url + `?type=${type}&pages=${page + 1}`;
     } else if (!type && start && end && !sort) {
-      prev = page === 1 ? null : url + `?start=${start}&end=${end}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?start=${start}&end=${end}&pages=${page + 1}`;
+      prev =
+                page === 1
+                  ? null
+                  : url + `?start=${start}&end=${end}&pages=${page - 1}`;
+      next =
+                page === totalPage
+                  ? null
+                  : url + `?start=${start}&end=${end}&pages=${page + 1}`;
     } else if (!type && !start && !end && sort) {
       prev = page === 1 ? null : url + `?sort=${sort}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?sort=${sort}&pages=${page + 1}`;
+      next =
+                page === totalPage
+                  ? null
+                  : url + `?sort=${sort}&pages=${page + 1}`;
     } else if (type && start && end && !sort) {
-      prev = page === 1 ? null : url + `?type=${type}&start=${start}&end=${end}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?type=${type}&start=${start}&end=${end}&pages=${page + 1}`;
+      prev =
+                page === 1
+                  ? null
+                  : url +
+                      `?type=${type}&start=${start}&end=${end}&pages=${
+                          page - 1
+                      }`;
+      next =
+                page === totalPage
+                  ? null
+                  : url +
+                      `?type=${type}&start=${start}&end=${end}&pages=${
+                          page + 1
+                      }`;
     } else if (!type && start && end && sort) {
-      prev = page === 1 ? null : url + `?start=${start}&end=${end}&sort=${sort}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?start=${start}&end=${end}&sort=${sort}&pages=${page + 1}`;
+      prev =
+                page === 1
+                  ? null
+                  : url +
+                      `?start=${start}&end=${end}&sort=${sort}&pages=${
+                          page - 1
+                      }`;
+      next =
+                page === totalPage
+                  ? null
+                  : url +
+                      `?start=${start}&end=${end}&sort=${sort}&pages=${
+                          page + 1
+                      }`;
     } else if (type && start && end && sort) {
-      prev = page === 1 ? null : url + `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${page - 1}`;
-      next = page === totalPage ? null : url + `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${page + 1}`;
+      prev =
+                page === 1
+                  ? null
+                  : url +
+                      `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${
+                          page - 1
+                      }`;
+      next =
+                page === totalPage
+                  ? null
+                  : url +
+                      `?type=${type}&start=${start}&end=${end}&sort=${sort}&pages=${
+                          page + 1
+                      }`;
     }
 
     const info = {
@@ -175,10 +242,7 @@ const subscribe = async (req, res) => {
         false
       );
     }
-    const result = await transactionModels.subscribe(
-      id,
-      productId
-    );
+    const result = await transactionModels.subscribe(id, productId);
     if (result) {
       console.log(result);
       if (result.conflict) {

@@ -3,6 +3,8 @@ const db = require("../database/dbMysql");
 
 const createAcount = (data) => {
   return new Promise((resolve, reject) => {
+    const randomVA = Math.floor(1000000000000000 + Math.random() * 9000000000000000);
+    data = { ...data, virtual_account: randomVA };
     const queryString = "INSERT INTO users SET ?";
     db.query(queryString, data, (error, results) => {
       if (error) {
