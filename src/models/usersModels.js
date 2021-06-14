@@ -68,16 +68,16 @@ const updateAccountModel = (data) => {
 
 const getMyContact = (id, search, sort, pages) => {
   return new Promise((resolve, reject) => {
-    let qs = "SELECT DISTINCT u.id, u.username, u.phone, u.avatar, COUNT(u.username) as rank FROM transactions t JOIN users u ON t.executor_id = u.id WHERE (t.sender_id = ? OR t.receiver_id = ?) AND t.type != 'subscription' AND t.executor_id != ?";
+    let qs = "SELECT DISTINCT IF(t.type='credit', r.id,  s.id) as id, IF(t.type='credit', r.username,  s.username) as username, IF(t.type='credit', r.avatar,  s.avatar) as avatar, IF(t.type='credit', r.phone, s.phone) as phone, COUNT(s.id) as rank FROM transactions t JOIN users s ON t.sender_id = s.id LEFT JOIN users r ON t.receiver_id = r.id  WHERE t.executor_id=?  AND t.type != 'subscription' AND (s.id != t.executor_id OR r.id != t.executor_id) GROUP BY id";
 
     let order = false;
     if (sort) {
       const ordered = sort.split("-");
       if (ordered[0] === "name") {
         if (ordered[1] === "AZ") {
-          order = " ORDER BY u.username ASC ";
+          order = " ORDER BY username ASC ";
         } else if (ordered[1] === "ZA") {
-          order = " ORDER BY u.username DESC ";
+          order = " ORDER BY username DESC ";
         } else {
           order = false;
         }
@@ -92,13 +92,13 @@ const getMyContact = (id, search, sort, pages) => {
       }
     }
     if (!search && !order) {
-      qs = qs + " ORDER BY u.username ASC";
+      qs = qs + " ORDER BY username ASC";
     } else if (search && !order) {
-      qs = qs + " AND u.username LIKE '%" + search + "%' " + " ORDER BY u.username ASC";
+      qs = qs + " AND username LIKE '%" + search + "%' " + " ORDER BY username ASC";
     } else if (!search && order) {
       qs = qs + order;
     } else if (search && order) {
-      qs = qs + " AND u.username LIKE '%" + search + "%' " + order;
+      qs = qs + " AND username LIKE '%" + search + "%' " + order;
     }
 
     const paginate = " LIMIT ? OFFSET ?";
@@ -109,7 +109,7 @@ const getMyContact = (id, search, sort, pages) => {
     const page = Number(pages) || 1;
     const offset = (page - 1) * limit;
 
-    db.query(fullQuery, [id, id, id, limit, offset], (error, result) => {
+    db.query(fullQuery, [id, limit, offset], (error, result) => {
       if (error) {
         return reject(error);
       } else if (result.length === 0) {
@@ -119,7 +119,7 @@ const getMyContact = (id, search, sort, pages) => {
         return resolve({ conflict: "You found nothing" });
       } else {
         const qsCount = "SELECT COUNT(*) AS count FROM(" + qs + ") as count";
-        db.query(qsCount, [id, id, id], (error, data) => {
+        db.query(qsCount, [id], (error, data) => {
           if (error) {
             return reject(error);
           } else {

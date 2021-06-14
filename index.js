@@ -1,3 +1,4 @@
+/* eslint-disable node/no-callback-literal */
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -20,8 +21,8 @@ app.use(express.static("public"));
 const io = socketIO(server, {
   cors: {
     origin: "*",
-    method: ["GET", "POST", "PATCH", "DELETE"],
-  },
+    method: ["GET", "POST", "PATCH", "DELETE"]
+  }
 });
 
 // import route
@@ -42,6 +43,21 @@ app.use("/notification", notificationRoute);
 
 io.on("connection", (socket) => {
   console.log(`${socket.id} has joined`);
+
+  socket.on("my-room", (room, cb) => {
+    socket.join(room);
+    cb({ status: true });
+  });
+
+  socket.on("transfer", (body, room, cb) => {
+    socket.join(room);
+    cb({ status: true });
+    if (room) {
+      socket.to(room).emit("get-notif", body);
+    } else {
+      socket.broadcast.emit("get-notif", body);
+    }
+  });
 });
 
 server.listen(process.env.PORT, () => {
@@ -52,6 +68,6 @@ server.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.json({
     succes: true,
-    message: "Backend is Running Now!!!",
+    message: "Backend is Running Now!!!"
   });
 });
