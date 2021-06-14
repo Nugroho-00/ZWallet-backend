@@ -100,8 +100,19 @@ const verifyOTPModel = (data) => {
     db.query(queryString, data, (error, result) => {
       if (error) {
         reject(error);
+      } else if (result.length) {
+        // Change user status
+        const qs = "UPDATE users SET status = 'verified' WHERE id = ?";
+        db.query(qs, data[1], (error, result) => {
+          if (error) {
+            return reject(error);
+          } else {
+            console.log(result);
+            resolve(result);
+          }
+        });
       } else {
-        resolve(result);
+        resolve({ conflict: "Wrong your userId or OTP !!!" });
       }
     });
   });

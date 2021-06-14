@@ -125,7 +125,11 @@ const loginAccount = async (req, res) => {
           issuer: process.env.ISSUER
         };
         const token = jwt.sign(payload, process.env.SECRET_KEY, options);
-        return responseStandard(res, "Login Succesfully", { token }, 200, true);
+        const data = {
+          token: token,
+          status: result[0].status
+        };
+        return responseStandard(res, "Login Succesfully", { ...data }, 200, true);
       }
     } else {
       return responseStandard(res, "Email not found!!!", {}, 400, false);
@@ -228,6 +232,7 @@ const postOTP = async (req, res) => {
     const result = await authModels.checkEmailModel(value.email);
     if (result.length) {
       const otp = generateOTP.generateOTP();
+      console.log(otp);
       await authModels.sendOTPModel([otp, result[0].id]);
       responseStandard(
         res,
@@ -270,7 +275,16 @@ const verifyOTP = async (req, res) => {
       return responseStandard(res, "Field cannot be empty !!", {}, 400, false);
     }
     const result = await authModels.verifyOTPModel([otp, userId]);
-    if (result.length) {
+    console.log(result);
+    if (result.conflict) {
+      return responseStandard(
+        res,
+        "Wrong your userId or OTP !!!",
+        {},
+        400,
+        false
+      );
+    } else {
       const options = {
         expiresIn: process.env.EXPIRE,
         issuer: process.env.ISSUER
@@ -280,14 +294,6 @@ const verifyOTP = async (req, res) => {
       };
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
       responseStandard(res, "Success verify OTP!", { token }, 200, true);
-    } else {
-      return responseStandard(
-        res,
-        "Wrong your userId or OTP !!!",
-        {},
-        400,
-        false
-      );
     }
   } catch (error) {
     responseStandard(res, error.message, {}, 400, false);
