@@ -5,7 +5,7 @@ const {
 } = require("../handlers/transactionHandlers");
 
 // Topup
-Router.patch("/topup", authentication, topUp);
+Router.patch("/topup", topUp);
 
 // Transfer
 Router.post("/transfer", authentication, transfer);
