@@ -21,19 +21,19 @@ const registerAccount = async (req, res) => {
           "string.max": "Username should have a max length of {#limit}",
           "string.min": "Username should have a minimum length of {#limit}",
           "any.required": "Username is a required field",
-          "string.pattern.base": "Username cannot contain number",
+          "string.pattern.base": "Username cannot contain number"
         }),
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
         "string.email": "Wrong Email format",
         "string.empty": "Email cannot be an empty field",
-        "any.required": "Email is a required field",
+        "any.required": "Email is a required field"
       }),
       phone: joi.number().integer().min(10).required().messages({
         "number.base":
           "Phone number is not a number or could not be cast to a number",
         "number.empty": "Phone number cannot be an empty field",
         "number.min": "Phone number should have a minimum length of {#limit}",
-        "any.required": "Phone is a required field",
+        "any.required": "Phone is a required field"
       }),
       password: joi
         .string()
@@ -47,8 +47,8 @@ const registerAccount = async (req, res) => {
           "string.min": "Password should have a minimum length of {#limit}",
           "any.required": "Password is a required field",
           "string.pattern.base":
-            "Password must contain letter, number and special character",
-        }),
+            "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -70,7 +70,7 @@ const registerAccount = async (req, res) => {
       username: value.username,
       email: value.email,
       phone: value.phone,
-      password: hashedPassword,
+      password: hashedPassword
     };
     await authModels.createAcount(users);
     return responseStandard(res, "User succes registered!", {}, 200, true);
@@ -85,7 +85,7 @@ const loginAccount = async (req, res) => {
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
         "string.email": "Wrong Email format",
         "string.empty": "Email cannot be an empty field",
-        "any.required": "Email is a required field",
+        "any.required": "Email is a required field"
       }),
       password: joi
         .string()
@@ -99,8 +99,8 @@ const loginAccount = async (req, res) => {
           "string.min": "Password should have a minimum length of {#limit}",
           "any.required": "Password is a required field",
           "string.pattern.base":
-            "Password must contain letter, number and special character",
-        }),
+            "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -125,7 +125,7 @@ const loginAccount = async (req, res) => {
         const payload = { id, username };
         const options = {
           expiresIn: process.env.EXPIRE,
-          issuer: process.env.ISSUER,
+          issuer: process.env.ISSUER
         };
         const token = jwt.sign(payload, process.env.SECRET_KEY, options);
         const data = {
@@ -150,8 +150,8 @@ const validationPin = async (req, res) => {
         "number.base": "Pin is not a number or could not be cast to a number",
         "number.empty": "Pin cannot be an empty field",
         "number.min": "Pin should have a minimum length of {#limit}",
-        "any.required": "Pin is a required field",
-      }),
+        "any.required": "Pin is a required field"
+      })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -189,9 +189,9 @@ const createPinUser = async (req, res) => {
         "number.base": "Pin is not a number or could not be cast to a number",
         "number.empty": "Pin cannot be an empty field",
         "number.min": "Pin should have a minimum length of {#limit}",
-        "any.required": "Pin is a required field",
+        "any.required": "Pin is a required field"
       }),
-      id: joi.number().integer(),
+      id: joi.number().integer()
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -219,8 +219,8 @@ const postOTP = async (req, res) => {
       email: joi.string().email({ minDomainSegments: 2 }).required().messages({
         "string.email": "Wrong Email format",
         "string.empty": "Email cannot be an empty field",
-        "any.required": "Email is a required field",
-      }),
+        "any.required": "Email is a required field"
+      })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -252,7 +252,7 @@ const postOTP = async (req, res) => {
           "<h1 style='font-weight:bold;'>" +
           otp +
           "</h1>" +
-          "<p style='font-style:italic;'>expired in 5 minutes. Do not share this OTP with anyone. We take your account security very seriously.</p>",
+          "<p style='font-style:italic;'>expired in 5 minutes. Do not share this OTP with anyone. We take your account security very seriously.</p>"
       };
       transporterMail.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -296,10 +296,10 @@ const verifyOTP = async (req, res) => {
     } else {
       const options = {
         expiresIn: process.env.EXPIRE,
-        issuer: process.env.ISSUER,
+        issuer: process.env.ISSUER
       };
       const payload = {
-        id: userId,
+        id: userId
       };
       const token = jwt.sign(payload, process.env.SECRET_KEY, options);
       responseStandard(res, "Success verify OTP!", { token }, 200, true);
@@ -325,8 +325,8 @@ const resetPassword = async (req, res) => {
           "string.min": "Password should have a minimum length of {#limit}",
           "any.required": "Password is a required field",
           "string.pattern.base":
-            "Password must contain letter, number and special character",
-        }),
+            "Password must contain letter, number and special character"
+        })
     });
     const { value, error } = schema.validate(req.body);
     if (error) {
@@ -369,5 +369,5 @@ module.exports = {
   resetPassword,
   postOTP,
   verifyOTP,
-  validationPin,
+  validationPin
 };
