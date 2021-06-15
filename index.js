@@ -21,8 +21,8 @@ app.use(express.static("public"));
 const io = socketIO(server, {
   cors: {
     origin: "*",
-    method: ["GET", "POST", "PATCH", "DELETE"],
-  },
+    method: ["GET", "POST", "PATCH", "DELETE"]
+  }
 });
 
 // import route
@@ -48,6 +48,10 @@ io.on("connection", (socket) => {
     socket.join(room);
     cb({ status: true });
   });
+  socket.on("leave", (room, cb) => {
+    socket.leave(room);
+    cb({ status: true });
+  });
 
   socket.on("transfer", (body, room, cb) => {
     socket.join(room);
@@ -68,6 +72,6 @@ server.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.json({
     succes: true,
-    message: "Backend is Running Now!!!",
+    message: "Backend is Running Now!!!"
   });
 });
